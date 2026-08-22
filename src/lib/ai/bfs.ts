@@ -1,8 +1,10 @@
-import type { AiGraph, Candidate, SearchResult, SearchStep } from "./types";
-import { finish, label, reconstruct } from "./common";
+import type { AiGraph, Candidate, SearchOptions, SearchResult, SearchStep } from "./types";
+import { finish, label, now, reconstruct, resolveOptions } from "./common";
 
 /** Uninformed search: explores every state at the current depth first. */
-export function bfs(graph: AiGraph): SearchResult {
+export function bfs(graph: AiGraph, options?: Partial<SearchOptions>): SearchResult {
+  const opts = resolveOptions(options);
+  const startedAt = now();
   const parent: Record<string, string | undefined> = { [graph.start]: undefined };
   const depth: Record<string, number> = { [graph.start]: 0 };
   const visited = new Set<string>([graph.start]);
@@ -10,10 +12,18 @@ export function bfs(graph: AiGraph): SearchResult {
   const explored: string[] = [];
   const steps: SearchStep[] = [];
   let goalReached = false;
+  let expansions = 0;
+  let peakFrontier = 1;
+  let limitHit: string | undefined;
 
   while (queue.length) {
+    if (expansions >= opts.maxIterations) {
+      limitHit = `Iteration limit (${opts.maxIterations} expansions) reached.`;
+      break;
+    }
     const current = queue.shift()!;
     explored.push(current);
+    expansions++;
     const candidates: Candidate[] = [];
 
     if (current === graph.goal) {
@@ -31,23 +41,43 @@ export function bfs(graph: AiGraph): SearchResult {
     }
 
     for (const edge of graph.edges[current] ?? []) {
+      const nextDepth = (depth[current] ?? 0) + 1;
       const isNew = !visited.has(edge.to);
-      candidates.push({
+      const tooDeep = nextDepth > opts.maxDepth;
+      const candidate: Candidate = {
         id: edge.to,
         label: label(graph, edge.to),
         g: 0,
         h: 0,
         f: 0,
         promise: graph.heuristics[edge.to]?.promise ?? 0,
-        selected: isNew,
-      });
-      if (isNew) {
+        selected: isNew && !tooDeep,
+      };
+      if (isNew && tooDeep) {
+        candidate.pruned = `depth ${nextDepth} > max depth ${opts.maxDepth}`;
+        limitHit ??= `Depth limit (${opts.maxDepth}) pruned deeper states.`;
+      }
+      candidates.push(candidate);
+      if (isNew && !tooDeep) {
         visited.add(edge.to);
         parent[edge.to] = current;
-        depth[edge.to] = (depth[current] ?? 0) + 1;
+        depth[edge.to] = nextDepth;
         queue.push(edge.to);
       }
     }
+
+    if (queue.length > opts.maxFrontier) {
+      const dropped = queue.splice(opts.maxFrontier);
+      for (const id of dropped) visited.delete(id);
+      for (const c of candidates) {
+        if (dropped.includes(c.id)) {
+          c.selected = false;
+          c.pruned = `frontier limit ${opts.maxFrontier}`;
+        }
+      }
+      limitHit ??= `Frontier limit (${opts.maxFrontier}) dropped queued states.`;
+    }
+    peakFrontier = Math.max(peakFrontier, queue.length);
 
     steps.push({
       index: steps.length,
@@ -70,11 +100,15 @@ export function bfs(graph: AiGraph): SearchResult {
       searchType: "Uninformed",
       path,
       nodesExplored: explored.length,
-      maxDepth: Math.max(...explored.map((id) => depth[id] ?? 0)),
+      expansions,
+      peakFrontier,
+      ...(limitHit ? { limitHit } : {}),
+      maxDepth: Math.max(0, ...explored.map((id) => depth[id] ?? 0)),
       goalReached,
       steps,
       note: "BFS explores all available states at the current depth before moving to deeper states. It guarantees the fewest actions, but ignores verification cost and usefulness.",
     },
     graph,
+    startedAt,
   );
 }

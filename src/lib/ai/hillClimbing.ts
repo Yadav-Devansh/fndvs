@@ -1,20 +1,36 @@
-import type { AiGraph, Candidate, SearchResult, SearchStep } from "./types";
-import { finish, label, pathCost } from "./common";
+import type { AiGraph, Candidate, SearchOptions, SearchResult, SearchStep } from "./types";
+import { finish, label, now, pathCost, resolveOptions } from "./common";
 
 /** Hill Climbing — move only to a neighbour that improves the heuristic. */
-export function hillClimbing(graph: AiGraph): SearchResult {
+export function hillClimbing(graph: AiGraph, options?: Partial<SearchOptions>): SearchResult {
+  const opts = resolveOptions(options);
+  const startedAt = now();
   let current = graph.start;
   const path: string[] = [current];
   const explored: string[] = [current];
   const steps: SearchStep[] = [];
   let goalReached = current === graph.goal;
   let stoppedNote = "";
+  let expansions = 0;
+  let peakFrontier = 0;
+  let limitHit: string | undefined;
 
   while (!goalReached) {
+    if (expansions >= opts.maxIterations) {
+      limitHit = `Iteration limit (${opts.maxIterations} expansions) reached.`;
+      stoppedNote = limitHit;
+      break;
+    }
+    if (path.length - 1 >= opts.maxDepth) {
+      limitHit = `Depth limit (${opts.maxDepth}) reached.`;
+      stoppedNote = limitHit;
+      break;
+    }
     const neighbours = graph.edges[current] ?? [];
     const currentPromise = graph.heuristics[current]?.promise ?? 0;
+    expansions++;
 
-    const candidates: Candidate[] = neighbours.map((e) => ({
+    let candidates: Candidate[] = neighbours.map((e) => ({
       id: e.to,
       label: label(graph, e.to),
       g: e.cost,
@@ -24,7 +40,16 @@ export function hillClimbing(graph: AiGraph): SearchResult {
       selected: false,
     }));
 
-    const best = [...candidates].sort((a, b) => b.promise - a.promise)[0];
+    if (candidates.length > opts.maxFrontier) {
+      const ordered = [...candidates].sort((a, b) => b.promise - a.promise);
+      const kept = new Set(ordered.slice(0, opts.maxFrontier).map((c) => c.id));
+      for (const c of candidates) if (!kept.has(c.id)) c.pruned = `frontier beam ${opts.maxFrontier}`;
+      candidates = candidates.filter((c) => !c.pruned).concat(candidates.filter((c) => c.pruned));
+      limitHit ??= `Frontier beam (${opts.maxFrontier}) limited the neighbours considered.`;
+    }
+    peakFrontier = Math.max(peakFrontier, candidates.filter((c) => !c.pruned).length);
+
+    const best = [...candidates].filter((c) => !c.pruned).sort((a, b) => b.promise - a.promise)[0];
 
     if (!best || best.promise <= currentPromise) {
       stoppedNote = "Hill Climbing stopped at a local maximum.";
@@ -75,8 +100,11 @@ export function hillClimbing(graph: AiGraph): SearchResult {
       algorithm: "hill-climbing",
       algorithmName: "Hill Climbing",
       searchType: "Local (informed)",
-      path: goalReached ? path : path,
+      path,
       nodesExplored: explored.length,
+      expansions,
+      peakFrontier,
+      ...(limitHit ? { limitHit } : {}),
       maxDepth: path.length - 1,
       goalReached,
       steps,
@@ -86,5 +114,6 @@ export function hillClimbing(graph: AiGraph): SearchResult {
         "Hill Climbing only accepts a strictly better neighbour, so it is fast and memory-light but can halt before the goal when every next check looks worse.",
     },
     graph,
+    startedAt,
   );
 }
