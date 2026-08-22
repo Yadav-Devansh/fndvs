@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
+  RotateCcw,
+} from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -26,7 +33,6 @@ import {
   stateLabel,
   type AiGraph,
   type AlgorithmId,
-
   type HeuristicWeights,
   type SearchOptions,
 } from "@/lib/ai";
@@ -40,13 +46,13 @@ export const Route = createFileRoute("/ai-search")({
       {
         name: "description",
         content:
-          "Explore how BFS, Best First Search, Hill Climbing and A* search the FNDVS verification state space to find the cheapest path to an official Indian source.",
+          "Compare BFS and A* searching the FNDVS verification state space to find the cheapest order of checks that reaches an official Indian source.",
       },
       { property: "og:title", content: "AI search lab — verification path finding | FNDVS" },
       {
         property: "og:description",
         content:
-          "Step through classical AI search algorithms exploring verification-source paths for any news claim.",
+          "A simple BFS vs A* demonstration over verification-source paths for any news claim.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -74,6 +80,8 @@ function AiSearchPage() {
   const [text, setText] = useState(SAMPLE);
   const [algorithm, setAlgorithm] = useState<AlgorithmId>("astar");
   const [analysed, setAnalysed] = useState(SAMPLE);
+  const [advanced, setAdvanced] = useState(false);
+  const [showLayout, setShowLayout] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [filters, setFilters] = useState<GraphFilters>({
@@ -92,16 +100,17 @@ function AiSearchPage() {
     ...DEFAULT_HEURISTIC_WEIGHTS,
   });
   const [weights, setWeights] = useState<HeuristicWeights>({ ...DEFAULT_HEURISTIC_WEIGHTS });
-  const [compare, setCompare] = useState<AlgorithmId[]>(ALGORITHMS.map((a) => a.id));
 
   const graph = useMemo(() => buildStateSpace(predict(analysed), weights), [analysed, weights]);
   const result = useMemo(
     () => runAlgorithm(algorithm, graph, options),
     [algorithm, graph, options],
   );
+  const bfsResult = useMemo(() => runAlgorithm("bfs", graph, options), [graph, options]);
+  const astarResult = useMemo(() => runAlgorithm("astar", graph, options), [graph, options]);
   const comparison = useMemo(
-    () => compare.map((id) => runAlgorithm(id, graph, options)),
-    [compare, graph, options],
+    () => ALGORITHMS.map((a) => runAlgorithm(a.id, graph, options)),
+    [graph, options],
   );
 
   useEffect(() => setStepIndex(0), [algorithm, analysed, options, weights]);
@@ -134,7 +143,9 @@ function AiSearchPage() {
   const inspectedH = selectedState ? graph.heuristics[selectedState] : undefined;
   const pathIndex = selectedState ? result.path.indexOf(selectedState) : -1;
   const incomingPathEdge =
-    pathIndex > 0 ? edgeBetween(graph, result.path[pathIndex - 1]!, result.path[pathIndex]!) : undefined;
+    pathIndex > 0
+      ? edgeBetween(graph, result.path[pathIndex - 1]!, result.path[pathIndex]!)
+      : undefined;
   const outgoingPathEdge =
     pathIndex >= 0 && pathIndex < result.path.length - 1
       ? edgeBetween(graph, result.path[pathIndex]!, result.path[pathIndex + 1]!)
@@ -149,6 +160,8 @@ function AiSearchPage() {
     [graph, selectedState],
   );
 
+  const savedStates = bfsResult.nodesExplored - astarResult.nodesExplored;
+  const savedCost = Math.round((bfsResult.searchCost - astarResult.searchCost) * 10) / 10;
 
   const applySettings = () => {
     setOptions({ ...draftOptions });
@@ -161,30 +174,61 @@ function AiSearchPage() {
     setWeights({ ...DEFAULT_HEURISTIC_WEIGHTS });
   };
 
+  const summaryCard = (r: typeof bfsResult, blurb: string) => (
+    <button
+      type="button"
+      onClick={() => setAlgorithm(r.algorithm)}
+      aria-pressed={algorithm === r.algorithm}
+      className={`surface p-5 text-left transition ${
+        algorithm === r.algorithm ? "border-primary ring-1 ring-primary" : "hover:border-primary/50"
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-display text-base font-bold">{r.algorithmName}</p>
+        <span className="text-xs text-muted-foreground">{r.searchType}</span>
+      </div>
+      <p className="mt-1 text-sm text-muted-foreground">{blurb}</p>
+      <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
+        {[
+          ["States explored", `${r.nodesExplored}`, "checks the search had to look at"],
+          ["Path length", `${r.pathLength} actions`, "steps in the plan it returned"],
+          ["Total effort", `${r.searchCost}`, "sum of action costs on that plan"],
+          ["Runtime", `${r.runtimeMs.toFixed(2)} ms`, "time to compute"],
+        ].map(([k, v, cap]) => (
+          <div key={k} className="rounded border border-border bg-card p-2">
+            <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">{k}</dt>
+            <dd className="font-display text-lg font-bold">{v}</dd>
+            <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{cap}</p>
+          </div>
+        ))}
+      </dl>
+    </button>
+  );
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <PageHeader
           eyebrow="Classical AI lab"
-          title="Verification path search"
-          description="The detection engine is untouched here. These algorithms only search the ORDER of verification actions — which aspect to check next, when to consult an official desk — over a state space built from the claim's own FNDVS scores."
+          title="Which checks should we do first?"
+          description="The detection engine is untouched. This page only searches the ORDER of verification actions — which aspect to check next, when to consult an official desk — and compares an uninformed search (BFS) with an informed one (A*)."
         />
 
-        {/* Claim input */}
+        {/* 1. Claim input */}
         <section className="surface mt-8 p-5">
           <Label htmlFor="claim" className="text-sm font-semibold">
-            Claim to explore
+            Claim to verify
           </Label>
           <Textarea
             id="claim"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={4}
+            rows={3}
             className="mt-2"
           />
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button onClick={() => setAnalysed(text.trim() || SAMPLE)}>
-              <Play className="size-4" aria-hidden="true" /> Build state space
+              <Play className="size-4" aria-hidden="true" /> Run search
             </Button>
             <Button
               variant="outline"
@@ -220,198 +264,141 @@ function AiSearchPage() {
           </div>
         </section>
 
-        {/* Algorithm picker */}
-        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {ALGORITHMS.map((a) => {
-            const active = a.id === algorithm;
-            return (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setAlgorithm(a.id)}
-                aria-pressed={active}
-                className={`surface p-4 text-left transition ${
-                  active ? "border-primary ring-1 ring-primary" : "hover:border-primary/50"
-                }`}
-              >
-                <p className="font-display text-sm font-bold">{a.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{a.type}</p>
-              </button>
-            );
-          })}
+        {/* 2. BFS vs A* */}
+        <section className="mt-6 grid gap-4 md:grid-cols-2">
+          {summaryCard(
+            bfsResult,
+            "Uninformed — tries every check at the current depth before going deeper.",
+          )}
+          {summaryCard(
+            astarResult,
+            "Informed — uses cost so far plus a heuristic estimate of what is left.",
+          )}
         </section>
-
-        {/* Search controls */}
-        <section className="surface mt-6 p-5">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden="true" />
-            <h2 className="font-display text-lg font-bold">Search controls</h2>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Limits apply to every algorithm; heuristic weights rebuild h(n) and the promise score.
-          </p>
-
-          <div className="mt-4 grid gap-5 md:grid-cols-3">
-            {(
-              [
-                { key: "maxDepth", label: "Max depth", min: 1, max: 12 },
-                { key: "maxIterations", label: "Max iterations", min: 1, max: 200 },
-                { key: "maxFrontier", label: "Max frontier size", min: 1, max: 50 },
-              ] as const
-            ).map((c) => (
-              <div key={c.key}>
-                <div className="flex items-baseline justify-between">
-                  <Label className="text-sm">{c.label}</Label>
-                  <span className="font-display text-sm font-bold">{draftOptions[c.key]}</span>
-                </div>
-                <Slider
-                  className="mt-3"
-                  min={c.min}
-                  max={c.max}
-                  step={1}
-                  value={[draftOptions[c.key]]}
-                  onValueChange={([v]) =>
-                    setDraftOptions((o) => ({ ...o, [c.key]: v ?? o[c.key] }))
-                  }
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-3">
-            {WEIGHT_FIELDS.map((w) => (
-              <div key={w.key}>
-                <div className="flex items-baseline justify-between">
-                  <Label className="text-sm">{w.label}</Label>
-                  <span className="font-display text-sm font-bold">
-                    {draftWeights[w.key].toFixed(2)}
-                  </span>
-                </div>
-                <Slider
-                  className="mt-3"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={[draftWeights[w.key]]}
-                  onValueChange={([v]) =>
-                    setDraftWeights((s) => ({ ...s, [w.key]: v ?? s[w.key] }))
-                  }
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button onClick={applySettings}>
-              <Play className="size-4" aria-hidden="true" /> Re-run all algorithms
-            </Button>
-            <Button variant="outline" onClick={resetSettings}>
-              <RotateCcw className="size-4" aria-hidden="true" /> Restore defaults
-            </Button>
-          </div>
-        </section>
-
-        {/* Result summary */}
-        <section className="mt-6 grid gap-4 md:grid-cols-4">
-          {[
-            { k: "Path length", v: `${result.pathLength} actions` },
-            { k: "Search cost", v: `${result.searchCost}` },
-            { k: "Expansions", v: `${result.expansions}` },
-            { k: "Runtime", v: `${result.runtimeMs.toFixed(2)} ms` },
-          ].map((m) => (
-            <div key={m.k} className="surface p-4">
-              <p className="eyebrow">{m.k}</p>
-              <p className="mt-1 font-display text-xl font-bold">{m.v}</p>
-            </div>
-          ))}
-        </section>
-
-        <p className="mt-4 rounded-lg border border-border bg-muted p-4 text-sm leading-relaxed text-muted-foreground">
-          {result.note}
-          {result.limitHit ? ` Limit applied: ${result.limitHit}` : ""}
+        <p className="mt-3 rounded-lg border border-border bg-muted p-4 text-sm leading-relaxed">
+          {bfsResult.goalReached && astarResult.goalReached ? (
+            <>
+              Both reach the same goal state. A* explored{" "}
+              <span className="font-semibold">
+                {savedStates > 0 ? `${savedStates} fewer` : `${Math.abs(savedStates)} more`}
+              </span>{" "}
+              states and its plan costs{" "}
+              <span className="font-semibold">
+                {savedCost > 0 ? `${savedCost} less effort` : `${Math.abs(savedCost)} more effort`}
+              </span>{" "}
+              than the BFS plan — that difference is what the heuristic buys you.
+            </>
+          ) : (
+            "One of the searches stopped before reaching the goal with the current limits — open Advanced settings to raise them."
+          )}
         </p>
 
-        {/* Graph view */}
+        {/* 3. Graph */}
         <section className="surface mt-6 p-5">
-          <h2 className="font-display text-lg font-bold">State space graph</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-lg font-bold">
+              Search graph — {result.algorithmName}
+            </h2>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={algorithm === "bfs" ? "default" : "outline"}
+                onClick={() => setAlgorithm("bfs")}
+              >
+                BFS
+              </Button>
+              <Button
+                size="sm"
+                variant={algorithm === "astar" ? "default" : "outline"}
+                onClick={() => setAlgorithm("astar")}
+              >
+                A*
+              </Button>
+            </div>
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Highlighted edges are the chosen path for {result.algorithmName}. Click any state to
-            inspect it, double-click to collapse or expand its branch.
+            Each box is a verification state; each arrow is one check with an effort cost.
+            Highlighted arrows are the plan this algorithm chose. Click a box to inspect it.
           </p>
           <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <span className="inline-block size-3 rounded-sm border border-primary bg-primary/15" />
-              on path
+              on chosen path
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block size-3 rounded-sm border border-border bg-muted" />
-              explored
+              already explored
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block size-3 rounded-sm border border-border bg-caution-soft" />
-              frontier
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block size-3 rounded-sm border-2 border-caution" />
-              current / animating
+              waiting in frontier
             </span>
           </div>
 
-          {/* Layout & filter controls */}
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-border bg-muted/50 p-3">
-            {(
-              [
-                ["showExplored", "Show explored"],
-                ["showFrontier", "Show frontier"],
-                ["showUnvisited", "Show unvisited"],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={filters[key]}
-                  onCheckedChange={(v) => setFilters((f) => ({ ...f, [key]: Boolean(v) }))}
-                />
-                {label}
-              </label>
-            ))}
-            <div className="ml-auto flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant={animating ? "default" : "outline"}
-                onClick={() => {
-                  if (animating) {
-                    setAnimating(false);
-                  } else if (result.path.length) {
-                    setAnimIndex(0);
-                    setAnimating(true);
-                  }
-                }}
-                disabled={result.path.length === 0}
-              >
-                {animating ? (
-                  <Pause className="size-4" aria-hidden="true" />
-                ) : (
-                  <Play className="size-4" aria-hidden="true" />
-                )}
-                {animating ? "Pause walk-through" : "Animate path"}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant={animating ? "default" : "outline"}
+              onClick={() => {
+                if (animating) {
                   setAnimating(false);
-                  setAnimIndex(-1);
-                }}
-              >
-                <RotateCcw className="size-4" aria-hidden="true" /> Stop
-              </Button>
+                } else if (result.path.length) {
+                  setAnimIndex(0);
+                  setAnimating(true);
+                }
+              }}
+              disabled={result.path.length === 0}
+            >
+              {animating ? (
+                <Pause className="size-4" aria-hidden="true" />
+              ) : (
+                <Play className="size-4" aria-hidden="true" />
+              )}
+              {animating ? "Pause" : "Animate the plan"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setAnimating(false);
+                setAnimIndex(-1);
+              }}
+            >
+              <RotateCcw className="size-4" aria-hidden="true" /> Stop
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowLayout((v) => !v)}>
+              <ChevronDown
+                className={`size-4 transition-transform ${showLayout ? "rotate-180" : ""}`}
+                aria-hidden="true"
+              />
+              Layout options
+            </Button>
+          </div>
+
+          {showLayout && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-border bg-muted/50 p-3">
+              {(
+                [
+                  ["showExplored", "Show explored"],
+                  ["showFrontier", "Show frontier"],
+                  ["showUnvisited", "Show unvisited"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={filters[key]}
+                    onCheckedChange={(v) => setFilters((f) => ({ ...f, [key]: Boolean(v) }))}
+                  />
+                  {label}
+                </label>
+              ))}
               {collapsed.length > 0 && (
                 <Button size="sm" variant="outline" onClick={() => setCollapsed([])}>
                   Expand all ({collapsed.length})
                 </Button>
               )}
             </div>
-          </div>
+          )}
 
           {animIndex >= 0 && result.path[animIndex] && (
             <p className="mt-3 rounded-lg border border-caution bg-caution-soft p-3 text-sm">
@@ -475,7 +462,6 @@ function AiSearchPage() {
                 </div>
               </div>
 
-              {/* Role on the chosen path */}
               <p className="mt-3 text-sm">
                 {pathIndex >= 0 ? (
                   <>
@@ -499,11 +485,25 @@ function AiSearchPage() {
               </p>
 
               {inspectedH && (
-                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
                   {[
-                    ["Promise", inspectedH.promise],
-                    ["h(n)", inspectedH.hCost],
+                    ["Promise (0–100)", inspectedH.promise],
+                    ["h(n) — estimated effort left", inspectedH.hCost],
                     ["Steps to goal", inspectedH.stepsToGoal],
+                  ].map(([k, v]) => (
+                    <div key={k as string} className="rounded border border-border bg-card p-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
+                      <p className="font-display text-sm font-bold">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {advanced && inspectedH && (
+                <div className="mt-2 grid gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">
+                  {[
                     ["Topic relevance", inspectedH.topicRelevance],
                     ["Source relevance", inspectedH.sourceRelevance],
                     ["Credibility concern", inspectedH.credibilityConcern],
@@ -575,242 +575,343 @@ function AiSearchPage() {
           )}
         </section>
 
-
-        {/* Path */}
+        {/* 4. Chosen plan */}
         <section className="surface mt-6 p-5">
-          <h2 className="font-display text-lg font-bold">Verification path found</h2>
-          <ol className="mt-3 flex flex-wrap items-center gap-2">
+          <h2 className="font-display text-lg font-bold">
+            The plan {result.algorithmName} recommends
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Read top to bottom: this is the order of verification work for this claim.
+          </p>
+          <ol className="mt-4 space-y-2">
             {result.path.length === 0 && (
               <li className="text-sm text-muted-foreground">
-                No complete path — the search halted before the goal state.
+                No complete plan — the search halted before the goal state.
               </li>
             )}
-            {result.path.map((id, i) => (
-              <li key={id} className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedState(id)}
-                  className="rounded border border-border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground hover:border-primary"
-                >
-                  {stateLabel(graph, id)}
-                </button>
-                {i < result.path.length - 1 && (
-                  <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden="true" />
-                )}
-              </li>
-            ))}
+            {result.path.map((id, i) => {
+              const edge = i > 0 ? edgeBetween(graph, result.path[i - 1]!, id) : undefined;
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedState(id)}
+                    className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left hover:border-primary ${
+                      animIndex === i ? "border-caution bg-caution-soft" : "border-border"
+                    }`}
+                  >
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 font-display text-xs font-bold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">
+                        {edge ? edge.action : "Start with the claim as received"}
+                      </span>
+                      <span className="block text-xs text-muted-foreground">
+                        → {stateLabel(graph, id)}
+                        {edge ? ` · effort ${edge.cost}` : ""}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         </section>
 
-        {/* Step trace */}
-        {step && (
-          <section className="surface mt-6 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-bold">
-                Step {step.index + 1} of {result.steps.length}
-              </h2>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-                  disabled={stepIndex === 0}
-                >
-                  <ChevronLeft className="size-4" aria-hidden="true" /> Prev
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setStepIndex((i) => Math.min(result.steps.length - 1, i + 1))}
-                  disabled={stepIndex >= result.steps.length - 1}
-                >
-                  Next <ChevronRight className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
-            </div>
-
-            <p className="mt-3 text-sm">{step.note}</p>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="eyebrow">Frontier</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {step.frontier.length === 0 && (
-                    <span className="text-xs text-muted-foreground">empty</span>
-                  )}
-                  {step.frontier.map((id) => (
-                    <span
-                      key={id}
-                      className="rounded border border-border px-2 py-0.5 text-[11px]"
-                    >
-                      {graph.byId[id]?.code ?? id}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="eyebrow">Explored</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {step.explored.map((id) => (
-                    <span
-                      key={id}
-                      className="rounded border border-border bg-muted px-2 py-0.5 text-[11px]"
-                    >
-                      {graph.byId[id]?.code ?? id}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {step.candidates.length > 0 && (
-              <div className="mt-5 overflow-x-auto">
-                <table className="w-full min-w-[520px] text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                      <th className="py-2">Candidate state</th>
-                      <th className="py-2">g(n)</th>
-                      <th className="py-2">h(n)</th>
-                      <th className="py-2">f(n)</th>
-                      <th className="py-2">Promise</th>
-                      <th className="py-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {step.candidates.map((c) => (
-                      <tr
-                        key={c.id}
-                        className={`border-b border-border/60 ${
-                          c.selected ? "bg-primary/10 font-medium" : ""
-                        }`}
-                      >
-                        <td className="py-2">{c.label}</td>
-                        <td className="py-2">{c.g}</td>
-                        <td className="py-2">{c.h}</td>
-                        <td className="py-2">{c.f}</td>
-                        <td className="py-2">{c.promise}</td>
-                        <td className="py-2 text-xs text-muted-foreground">
-                          {c.pruned ? `pruned — ${c.pruned}` : c.selected ? "selected" : "queued"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Comparison */}
+        {/* 5. Advanced */}
         <section className="surface mt-6 p-5">
-          <h2 className="font-display text-lg font-bold">Side-by-side comparison</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            All selected algorithms run on the same claim with the same limits and heuristic
-            weights.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-4">
-            {ALGORITHMS.map((a) => (
-              <label key={a.id} className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={compare.includes(a.id)}
-                  onCheckedChange={(v) =>
-                    setCompare((list) =>
-                      v ? [...new Set([...list, a.id])] : list.filter((x) => x !== a.id),
-                    )
-                  }
-                />
-                {a.name}
-              </label>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setAdvanced((v) => !v)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+            aria-expanded={advanced}
+          >
+            <span>
+              <span className="block font-display text-lg font-bold">Advanced settings</span>
+              <span className="block text-sm text-muted-foreground">
+                Search limits, heuristic weights, the full step-by-step trace and all four
+                algorithms.
+              </span>
+            </span>
+            <ChevronDown
+              className={`size-5 shrink-0 transition-transform ${advanced ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+          </button>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            {comparison.map((r) => {
-              const avgPromise = r.path.length
-                ? Math.round(
-                    (r.path.reduce((s, id) => s + (graph.heuristics[id]?.promise ?? 0), 0) /
-                      r.path.length) *
-                      10,
-                  ) / 10
-                : 0;
-              const goalH = graph.heuristics[graph.start]?.hCost ?? 0;
-              return (
-                <div
-                  key={r.algorithm}
-                  className={`rounded-lg border p-4 ${
-                    r.algorithm === algorithm ? "border-primary bg-primary/5" : "border-border"
-                  }`}
-                >
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="font-display text-base font-bold">{r.algorithmName}</p>
-                    <span className="text-xs text-muted-foreground">{r.searchType}</span>
-                  </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
-                    {[
-                      ["Runtime", `${r.runtimeMs.toFixed(2)} ms`],
-                      ["Expansions", r.expansions],
-                      ["Path length", r.pathLength],
-                      ["Search cost", r.searchCost],
-                      ["Peak frontier", r.peakFrontier],
-                      ["Goal", r.goalReached ? "reached" : "halted"],
-                      ["Avg promise", avgPromise],
-                      ["h(start)", goalH],
-                      ["Max depth", r.maxDepth],
-                    ].map(([k, v]) => (
-                      <div key={k as string} className="rounded border border-border bg-card p-2">
-                        <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          {k}
-                        </dt>
-                        <dd className="font-display text-sm font-bold">{v}</dd>
+          {advanced && (
+            <div className="mt-6 space-y-8">
+              {/* Algorithm picker */}
+              <div>
+                <p className="eyebrow">Algorithm shown in the graph and plan</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {ALGORITHMS.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => setAlgorithm(a.id)}
+                      aria-pressed={a.id === algorithm}
+                      className={`rounded-lg border p-3 text-left transition ${
+                        a.id === algorithm
+                          ? "border-primary ring-1 ring-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <p className="font-display text-sm font-bold">{a.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{a.type}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Limits + weights */}
+              <div>
+                <p className="eyebrow">Search limits</p>
+                <div className="mt-3 grid gap-5 md:grid-cols-3">
+                  {(
+                    [
+                      { key: "maxDepth", label: "Max depth", min: 1, max: 12 },
+                      { key: "maxIterations", label: "Max iterations", min: 1, max: 200 },
+                      { key: "maxFrontier", label: "Max frontier size", min: 1, max: 50 },
+                    ] as const
+                  ).map((c) => (
+                    <div key={c.key}>
+                      <div className="flex items-baseline justify-between">
+                        <Label className="text-sm">{c.label}</Label>
+                        <span className="font-display text-sm font-bold">
+                          {draftOptions[c.key]}
+                        </span>
                       </div>
-                    ))}
-                  </dl>
+                      <Slider
+                        className="mt-3"
+                        min={c.min}
+                        max={c.max}
+                        step={1}
+                        value={[draftOptions[c.key]]}
+                        onValueChange={([v]) =>
+                          setDraftOptions((o) => ({ ...o, [c.key]: v ?? o[c.key] }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <p className="eyebrow mt-6">Heuristic weights</p>
+                <div className="mt-3 grid gap-5 md:grid-cols-3">
+                  {WEIGHT_FIELDS.map((w) => (
+                    <div key={w.key}>
+                      <div className="flex items-baseline justify-between">
+                        <Label className="text-sm">{w.label}</Label>
+                        <span className="font-display text-sm font-bold">
+                          {draftWeights[w.key].toFixed(2)}
+                        </span>
+                      </div>
+                      <Slider
+                        className="mt-3"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={[draftWeights[w.key]]}
+                        onValueChange={([v]) =>
+                          setDraftWeights((s) => ({ ...s, [w.key]: v ?? s[w.key] }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button onClick={applySettings}>
+                    <Play className="size-4" aria-hidden="true" /> Re-run all algorithms
+                  </Button>
+                  <Button variant="outline" onClick={resetSettings}>
+                    <RotateCcw className="size-4" aria-hidden="true" /> Restore defaults
+                  </Button>
+                </div>
+                {result.limitHit && (
                   <p className="mt-3 text-xs text-muted-foreground">
-                    Path:{" "}
-                    {r.path.length
-                      ? r.path.map((id) => graph.byId[id]?.code ?? id).join(" → ")
-                      : "no complete path"}
+                    Limit applied: {result.limitHit}
                   </p>
-                  {r.limitHit && (
-                    <p className="mt-2 text-xs text-caution-foreground">
-                      <span className="rounded bg-caution px-1.5 py-0.5">{r.limitHit}</span>
+                )}
+              </div>
+
+              {/* Step trace */}
+              {step && (
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="eyebrow">
+                      Trace — step {step.index + 1} of {result.steps.length}
                     </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+                        disabled={stepIndex === 0}
+                      >
+                        <ChevronLeft className="size-4" aria-hidden="true" /> Prev
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setStepIndex((i) => Math.min(result.steps.length - 1, i + 1))
+                        }
+                        disabled={stepIndex >= result.steps.length - 1}
+                      >
+                        Next <ChevronRight className="size-4" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-sm">{step.note}</p>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="eyebrow">Frontier</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {step.frontier.length === 0 && (
+                          <span className="text-xs text-muted-foreground">empty</span>
+                        )}
+                        {step.frontier.map((id) => (
+                          <span
+                            key={id}
+                            className="rounded border border-border px-2 py-0.5 text-[11px]"
+                          >
+                            {graph.byId[id]?.code ?? id}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="eyebrow">Explored</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {step.explored.map((id) => (
+                          <span
+                            key={id}
+                            className="rounded border border-border bg-muted px-2 py-0.5 text-[11px]"
+                          >
+                            {graph.byId[id]?.code ?? id}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {step.candidates.length > 0 && (
+                    <div className="mt-5 overflow-x-auto">
+                      <table className="w-full min-w-[520px] text-sm">
+                        <thead>
+                          <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                            <th className="py-2">Candidate state</th>
+                            <th className="py-2">g(n)</th>
+                            <th className="py-2">h(n)</th>
+                            <th className="py-2">f(n)</th>
+                            <th className="py-2">Promise</th>
+                            <th className="py-2">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {step.candidates.map((c) => (
+                            <tr
+                              key={c.id}
+                              className={`border-b border-border/60 ${
+                                c.selected ? "bg-primary/10 font-medium" : ""
+                              }`}
+                            >
+                              <td className="py-2">{c.label}</td>
+                              <td className="py-2">{c.g}</td>
+                              <td className="py-2">{c.h}</td>
+                              <td className="py-2">{c.f}</td>
+                              <td className="py-2">{c.promise}</td>
+                              <td className="py-2 text-xs text-muted-foreground">
+                                {c.pruned
+                                  ? `pruned — ${c.pruned}`
+                                  : c.selected
+                                    ? "selected"
+                                    : "queued"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
-              );
-            })}
-            {comparison.length === 0 && (
-              <p className="text-sm text-muted-foreground">Select at least one algorithm.</p>
-            )}
-          </div>
-        </section>
+              )}
 
-        {/* State space reference */}
-        <section className="surface mt-6 p-5">
-          <h2 className="font-display text-lg font-bold">State space & heuristic</h2>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {graph.states.map((s) => {
-              const h = graph.heuristics[s.id];
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSelectedState(s.id)}
-                  className="rounded-lg border border-border p-3 text-left hover:border-primary"
-                >
-                  <p className="text-sm font-semibold">
-                    {s.code} · {s.label}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{s.detail}</p>
-                  {h && (
-                    <p className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                      promise {h.promise} · h(n) {h.hCost} · {h.stepsToGoal} step(s) to goal
-                    </p>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+              {/* All four algorithms */}
+              <div>
+                <p className="eyebrow">All four algorithms on this claim</p>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[620px] text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                        <th className="py-2">Algorithm</th>
+                        <th className="py-2">Type</th>
+                        <th className="py-2">Explored</th>
+                        <th className="py-2">Path</th>
+                        <th className="py-2">Cost</th>
+                        <th className="py-2">Peak frontier</th>
+                        <th className="py-2">Runtime</th>
+                        <th className="py-2">Goal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comparison.map((r) => (
+                        <tr
+                          key={r.algorithm}
+                          className={`border-b border-border/60 ${
+                            r.algorithm === algorithm ? "bg-primary/10 font-medium" : ""
+                          }`}
+                        >
+                          <td className="py-2">{r.algorithmName}</td>
+                          <td className="py-2 text-xs text-muted-foreground">{r.searchType}</td>
+                          <td className="py-2">{r.nodesExplored}</td>
+                          <td className="py-2">{r.pathLength}</td>
+                          <td className="py-2">{r.searchCost}</td>
+                          <td className="py-2">{r.peakFrontier}</td>
+                          <td className="py-2">{r.runtimeMs.toFixed(2)} ms</td>
+                          <td className="py-2 text-xs text-muted-foreground">
+                            {r.goalReached ? "reached" : "halted"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* State reference */}
+              <div>
+                <p className="eyebrow">State space reference</p>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  {graph.states.map((s) => {
+                    const h = graph.heuristics[s.id];
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedState(s.id)}
+                        className="rounded-lg border border-border p-3 text-left hover:border-primary"
+                      >
+                        <p className="text-sm font-semibold">
+                          {s.code} · {s.label}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">{s.detail}</p>
+                        {h && (
+                          <p className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                            promise {h.promise} · h(n) {h.hCost} · {h.stepsToGoal} step(s) to goal
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         <p className="mt-8 rounded-lg border border-border bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
