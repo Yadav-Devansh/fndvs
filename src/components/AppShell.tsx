@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { DISCLAIMER } from "@/lib/predict";
 import { ShieldCheck, Menu, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button size="sm" asChild className="hidden sm:inline-flex">
               <Link to="/submit">Verify now</Link>
             </Button>
