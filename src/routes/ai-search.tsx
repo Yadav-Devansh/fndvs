@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Play, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -12,14 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StateGraph } from "@/components/ai/StateGraph";
 import { predict } from "@/lib/predict";
 import {
   ALGORITHMS,
+  DEFAULT_HEURISTIC_WEIGHTS,
+  DEFAULT_OPTIONS,
   buildStateSpace,
   runAlgorithm,
-  runAll,
   stateLabel,
   type AlgorithmId,
+  type HeuristicWeights,
+  type SearchOptions,
 } from "@/lib/ai";
 import { useRecords } from "./history";
 
@@ -48,20 +54,57 @@ export const Route = createFileRoute("/ai-search")({
 const SAMPLE =
   "URGENT: Forward this to 10 people immediately — the government is switching off all mobile SIM cards that are not linked to Aadhaar by Friday!";
 
+const WEIGHT_FIELDS: { key: keyof HeuristicWeights; label: string }[] = [
+  { key: "topicRelevance", label: "Topic relevance" },
+  { key: "sourceRelevance", label: "Source relevance" },
+  { key: "credibilityConcern", label: "Credibility concern" },
+  { key: "evidenceAvailability", label: "Evidence availability" },
+  { key: "uncertaintyReduction", label: "Uncertainty reduction" },
+];
+
 function AiSearchPage() {
   const records = useRecords();
   const [text, setText] = useState(SAMPLE);
   const [algorithm, setAlgorithm] = useState<AlgorithmId>("astar");
   const [analysed, setAnalysed] = useState(SAMPLE);
   const [stepIndex, setStepIndex] = useState(0);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
 
-  const graph = useMemo(() => buildStateSpace(predict(analysed)), [analysed]);
-  const result = useMemo(() => runAlgorithm(algorithm, graph), [algorithm, graph]);
-  const comparison = useMemo(() => runAll(graph), [graph]);
+  // Draft controls (edited by the user) vs applied settings (used by the search).
+  const [draftOptions, setDraftOptions] = useState<SearchOptions>({ ...DEFAULT_OPTIONS });
+  const [options, setOptions] = useState<SearchOptions>({ ...DEFAULT_OPTIONS });
+  const [draftWeights, setDraftWeights] = useState<HeuristicWeights>({
+    ...DEFAULT_HEURISTIC_WEIGHTS,
+  });
+  const [weights, setWeights] = useState<HeuristicWeights>({ ...DEFAULT_HEURISTIC_WEIGHTS });
+  const [compare, setCompare] = useState<AlgorithmId[]>(ALGORITHMS.map((a) => a.id));
 
-  useEffect(() => setStepIndex(0), [algorithm, analysed]);
+  const graph = useMemo(() => buildStateSpace(predict(analysed), weights), [analysed, weights]);
+  const result = useMemo(
+    () => runAlgorithm(algorithm, graph, options),
+    [algorithm, graph, options],
+  );
+  const comparison = useMemo(
+    () => compare.map((id) => runAlgorithm(id, graph, options)),
+    [compare, graph, options],
+  );
+
+  useEffect(() => setStepIndex(0), [algorithm, analysed, options, weights]);
 
   const step = result.steps[Math.min(stepIndex, result.steps.length - 1)];
+  const inspected = selectedState ? graph.byId[selectedState] : undefined;
+  const inspectedH = selectedState ? graph.heuristics[selectedState] : undefined;
+
+  const applySettings = () => {
+    setOptions({ ...draftOptions });
+    setWeights({ ...draftWeights });
+  };
+  const resetSettings = () => {
+    setDraftOptions({ ...DEFAULT_OPTIONS });
+    setDraftWeights({ ...DEFAULT_HEURISTIC_WEIGHTS });
+    setOptions({ ...DEFAULT_OPTIONS });
+    setWeights({ ...DEFAULT_HEURISTIC_WEIGHTS });
+  };
 
   return (
     <AppShell>
@@ -143,13 +186,83 @@ function AiSearchPage() {
           })}
         </section>
 
+        {/* Search controls */}
+        <section className="surface mt-6 p-5">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="font-display text-lg font-bold">Search controls</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Limits apply to every algorithm; heuristic weights rebuild h(n) and the promise score.
+          </p>
+
+          <div className="mt-4 grid gap-5 md:grid-cols-3">
+            {(
+              [
+                { key: "maxDepth", label: "Max depth", min: 1, max: 12 },
+                { key: "maxIterations", label: "Max iterations", min: 1, max: 200 },
+                { key: "maxFrontier", label: "Max frontier size", min: 1, max: 50 },
+              ] as const
+            ).map((c) => (
+              <div key={c.key}>
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-sm">{c.label}</Label>
+                  <span className="font-display text-sm font-bold">{draftOptions[c.key]}</span>
+                </div>
+                <Slider
+                  className="mt-3"
+                  min={c.min}
+                  max={c.max}
+                  step={1}
+                  value={[draftOptions[c.key]]}
+                  onValueChange={([v]) =>
+                    setDraftOptions((o) => ({ ...o, [c.key]: v ?? o[c.key] }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-5 md:grid-cols-3">
+            {WEIGHT_FIELDS.map((w) => (
+              <div key={w.key}>
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-sm">{w.label}</Label>
+                  <span className="font-display text-sm font-bold">
+                    {draftWeights[w.key].toFixed(2)}
+                  </span>
+                </div>
+                <Slider
+                  className="mt-3"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={[draftWeights[w.key]]}
+                  onValueChange={([v]) =>
+                    setDraftWeights((s) => ({ ...s, [w.key]: v ?? s[w.key] }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button onClick={applySettings}>
+              <Play className="size-4" aria-hidden="true" /> Re-run all algorithms
+            </Button>
+            <Button variant="outline" onClick={resetSettings}>
+              <RotateCcw className="size-4" aria-hidden="true" /> Restore defaults
+            </Button>
+          </div>
+        </section>
+
         {/* Result summary */}
         <section className="mt-6 grid gap-4 md:grid-cols-4">
           {[
             { k: "Path length", v: `${result.pathLength} actions` },
             { k: "Search cost", v: `${result.searchCost}` },
-            { k: "States explored", v: `${result.nodesExplored}` },
-            { k: "Goal reached", v: result.goalReached ? "Yes" : "No (halted)" },
+            { k: "Expansions", v: `${result.expansions}` },
+            { k: "Runtime", v: `${result.runtimeMs.toFixed(2)} ms` },
           ].map((m) => (
             <div key={m.k} className="surface p-4">
               <p className="eyebrow">{m.k}</p>
@@ -160,7 +273,89 @@ function AiSearchPage() {
 
         <p className="mt-4 rounded-lg border border-border bg-muted p-4 text-sm leading-relaxed text-muted-foreground">
           {result.note}
+          {result.limitHit ? ` Limit applied: ${result.limitHit}` : ""}
         </p>
+
+        {/* Graph view */}
+        <section className="surface mt-6 p-5">
+          <h2 className="font-display text-lg font-bold">State space graph</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Highlighted edges are the chosen path for {result.algorithmName}. Click any state to
+            inspect it.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block size-3 rounded-sm border border-primary bg-primary/15" />
+              on path
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block size-3 rounded-sm border border-border bg-muted" />
+              explored
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block size-3 rounded-sm border border-border bg-caution-soft" />
+              frontier
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block size-3 rounded-sm border-2 border-caution" />
+              current
+            </span>
+          </div>
+          <div className="mt-4">
+            <StateGraph
+              graph={graph}
+              path={result.path}
+              explored={step?.explored ?? []}
+              frontier={step?.frontier ?? []}
+              {...(step ? { currentId: step.current } : {})}
+              {...(selectedState ? { selectedId: selectedState } : {})}
+              onSelect={setSelectedState}
+            />
+          </div>
+
+          {inspected && (
+            <div className="mt-4 rounded-lg border border-border bg-muted/60 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-display text-base font-bold">
+                    {inspected.code} · {inspected.label}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{inspected.detail}</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setSelectedState(null)}>
+                  Close
+                </Button>
+              </div>
+              {inspectedH && (
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    ["Promise", inspectedH.promise],
+                    ["h(n)", inspectedH.hCost],
+                    ["Steps to goal", inspectedH.stepsToGoal],
+                    ["Topic relevance", inspectedH.topicRelevance],
+                    ["Source relevance", inspectedH.sourceRelevance],
+                    ["Credibility concern", inspectedH.credibilityConcern],
+                    ["Evidence availability", inspectedH.evidenceAvailability],
+                    ["Uncertainty reduction", inspectedH.uncertaintyReduction],
+                  ].map(([k, v]) => (
+                    <div key={k as string} className="rounded border border-border bg-card p-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
+                      <p className="font-display text-sm font-bold">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-3 text-xs text-muted-foreground">
+                Outgoing actions:{" "}
+                {(graph.edges[inspected.id] ?? [])
+                  .map((e) => `${e.action} → ${e.to} (cost ${e.cost})`)
+                  .join("; ") || "none — this is the goal state."}
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* Path */}
         <section className="surface mt-6 p-5">
@@ -173,9 +368,13 @@ function AiSearchPage() {
             )}
             {result.path.map((id, i) => (
               <li key={id} className="flex items-center gap-2">
-                <span className="rounded border border-border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
+                <button
+                  type="button"
+                  onClick={() => setSelectedState(id)}
+                  className="rounded border border-border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground hover:border-primary"
+                >
                   {stateLabel(graph, id)}
-                </span>
+                </button>
                 {i < result.path.length - 1 && (
                   <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden="true" />
                 )}
@@ -255,6 +454,7 @@ function AiSearchPage() {
                       <th className="py-2">h(n)</th>
                       <th className="py-2">f(n)</th>
                       <th className="py-2">Promise</th>
+                      <th className="py-2">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -270,6 +470,9 @@ function AiSearchPage() {
                         <td className="py-2">{c.h}</td>
                         <td className="py-2">{c.f}</td>
                         <td className="py-2">{c.promise}</td>
+                        <td className="py-2 text-xs text-muted-foreground">
+                          {c.pruned ? `pruned — ${c.pruned}` : c.selected ? "selected" : "queued"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -281,37 +484,85 @@ function AiSearchPage() {
 
         {/* Comparison */}
         <section className="surface mt-6 p-5">
-          <h2 className="font-display text-lg font-bold">Algorithm comparison</h2>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[620px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="py-2">Algorithm</th>
-                  <th className="py-2">Type</th>
-                  <th className="py-2">Steps</th>
-                  <th className="py-2">Cost</th>
-                  <th className="py-2">Explored</th>
-                  <th className="py-2">Goal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparison.map((r) => (
-                  <tr
-                    key={r.algorithm}
-                    className={`border-b border-border/60 ${
-                      r.algorithm === algorithm ? "bg-primary/10 font-medium" : ""
-                    }`}
-                  >
-                    <td className="py-2">{r.algorithmName}</td>
-                    <td className="py-2 text-muted-foreground">{r.searchType}</td>
-                    <td className="py-2">{r.pathLength}</td>
-                    <td className="py-2">{r.searchCost}</td>
-                    <td className="py-2">{r.nodesExplored}</td>
-                    <td className="py-2">{r.goalReached ? "reached" : "halted"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h2 className="font-display text-lg font-bold">Side-by-side comparison</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            All selected algorithms run on the same claim with the same limits and heuristic
+            weights.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-4">
+            {ALGORITHMS.map((a) => (
+              <label key={a.id} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={compare.includes(a.id)}
+                  onCheckedChange={(v) =>
+                    setCompare((list) =>
+                      v ? [...new Set([...list, a.id])] : list.filter((x) => x !== a.id),
+                    )
+                  }
+                />
+                {a.name}
+              </label>
+            ))}
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {comparison.map((r) => {
+              const avgPromise = r.path.length
+                ? Math.round(
+                    (r.path.reduce((s, id) => s + (graph.heuristics[id]?.promise ?? 0), 0) /
+                      r.path.length) *
+                      10,
+                  ) / 10
+                : 0;
+              const goalH = graph.heuristics[graph.start]?.hCost ?? 0;
+              return (
+                <div
+                  key={r.algorithm}
+                  className={`rounded-lg border p-4 ${
+                    r.algorithm === algorithm ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="font-display text-base font-bold">{r.algorithmName}</p>
+                    <span className="text-xs text-muted-foreground">{r.searchType}</span>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+                    {[
+                      ["Runtime", `${r.runtimeMs.toFixed(2)} ms`],
+                      ["Expansions", r.expansions],
+                      ["Path length", r.pathLength],
+                      ["Search cost", r.searchCost],
+                      ["Peak frontier", r.peakFrontier],
+                      ["Goal", r.goalReached ? "reached" : "halted"],
+                      ["Avg promise", avgPromise],
+                      ["h(start)", goalH],
+                      ["Max depth", r.maxDepth],
+                    ].map(([k, v]) => (
+                      <div key={k as string} className="rounded border border-border bg-card p-2">
+                        <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {k}
+                        </dt>
+                        <dd className="font-display text-sm font-bold">{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Path:{" "}
+                    {r.path.length
+                      ? r.path.map((id) => graph.byId[id]?.code ?? id).join(" → ")
+                      : "no complete path"}
+                  </p>
+                  {r.limitHit && (
+                    <p className="mt-2 text-xs text-caution-foreground">
+                      <span className="rounded bg-caution px-1.5 py-0.5">{r.limitHit}</span>
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            {comparison.length === 0 && (
+              <p className="text-sm text-muted-foreground">Select at least one algorithm.</p>
+            )}
           </div>
         </section>
 
@@ -322,7 +573,12 @@ function AiSearchPage() {
             {graph.states.map((s) => {
               const h = graph.heuristics[s.id];
               return (
-                <div key={s.id} className="rounded-lg border border-border p-3">
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSelectedState(s.id)}
+                  className="rounded-lg border border-border p-3 text-left hover:border-primary"
+                >
                   <p className="text-sm font-semibold">
                     {s.code} · {s.label}
                   </p>
@@ -332,7 +588,7 @@ function AiSearchPage() {
                       promise {h.promise} · h(n) {h.hCost} · {h.stepsToGoal} step(s) to goal
                     </p>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

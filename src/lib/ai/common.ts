@@ -1,5 +1,15 @@
-import type { AiGraph, SearchResult } from "./types";
+import type { AiGraph, SearchOptions, SearchResult } from "./types";
 import { round1 } from "./stateSpace";
+
+export const DEFAULT_OPTIONS: SearchOptions = {
+  maxDepth: 12,
+  maxIterations: 200,
+  maxFrontier: 50,
+};
+
+export function resolveOptions(options?: Partial<SearchOptions>): SearchOptions {
+  return { ...DEFAULT_OPTIONS, ...(options ?? {}) };
+}
 
 export function reconstruct(parent: Record<string, string | undefined>, goal: string): string[] {
   const path: string[] = [];
@@ -25,12 +35,23 @@ export function label(graph: AiGraph, id: string) {
   return s ? `${s.code} · ${s.label}` : id;
 }
 
-export function finish(
-  partial: Omit<SearchResult, "pathLength" | "searchCost"> & { searchCost?: number },
-  graph: AiGraph,
-): SearchResult {
+export function now() {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
+type FinishInput = Omit<
+  SearchResult,
+  "pathLength" | "searchCost" | "runtimeMs" | "peakFrontier"
+> & {
+  searchCost?: number;
+  peakFrontier?: number;
+};
+
+export function finish(partial: FinishInput, graph: AiGraph, startedAt = now()): SearchResult {
   return {
     ...partial,
+    peakFrontier: partial.peakFrontier ?? 0,
+    runtimeMs: Math.round((now() - startedAt) * 1000) / 1000,
     pathLength: Math.max(0, partial.path.length - 1),
     searchCost: partial.searchCost ?? pathCost(graph, partial.path),
   };

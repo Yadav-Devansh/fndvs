@@ -1,5 +1,5 @@
 import type { PredictionResult } from "@/lib/predict";
-import type { AiEdge, AiGraph, AiState } from "./types";
+import type { AiEdge, AiGraph, AiState, HeuristicWeights } from "./types";
 import { buildHeuristics } from "./heuristic";
 
 /** Aspect states S2..S8 in syllabus order; corroboration is modelled as S10. */
@@ -21,7 +21,10 @@ function aspectCost(score: number) {
   return round1(1 + (score / 100) * 2);
 }
 
-export function buildStateSpace(result: PredictionResult): AiGraph {
+export function buildStateSpace(
+  result: PredictionResult,
+  weights?: Partial<HeuristicWeights>,
+): AiGraph {
   const scoreOf = (id: string) => result.aspects.find((a) => a.id === id)?.score ?? 50;
   const topSource = result.sources[0];
   const topicLabel = result.topics[0] ?? "general";
@@ -107,7 +110,7 @@ export function buildStateSpace(result: PredictionResult): AiGraph {
     goal: "S11",
     heuristics: {},
   };
-  graph.heuristics = buildHeuristics(graph, result);
+  graph.heuristics = buildHeuristics(graph, result, weights);
   return graph;
 }
 
