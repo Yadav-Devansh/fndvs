@@ -36,6 +36,23 @@ export interface HeuristicBreakdown {
   stepsToGoal: number;
 }
 
+export interface HeuristicWeights {
+  topicRelevance: number;
+  sourceRelevance: number;
+  credibilityConcern: number;
+  evidenceAvailability: number;
+  uncertaintyReduction: number;
+}
+
+export interface SearchOptions {
+  /** Deepest level the search may expand into. */
+  maxDepth: number;
+  /** Hard cap on the number of state expansions (iterations). */
+  maxIterations: number;
+  /** Beam width — how many states may be kept on the frontier at once. */
+  maxFrontier: number;
+}
+
 export interface AiGraph {
   states: AiState[];
   byId: Record<string, AiState>;
@@ -53,6 +70,8 @@ export interface Candidate {
   f: number;
   promise: number;
   selected: boolean;
+  /** Set when a limit stopped this candidate from entering the frontier. */
+  pruned?: string;
 }
 
 export interface SearchStep {
@@ -75,6 +94,14 @@ export interface SearchResult {
   path: string[];
   pathLength: number;
   nodesExplored: number;
+  /** Number of state expansions performed (iterations of the main loop). */
+  expansions: number;
+  /** Wall-clock runtime of the search, in milliseconds. */
+  runtimeMs: number;
+  /** Largest frontier size observed during the run. */
+  peakFrontier: number;
+  /** True when a configured limit stopped the search early. */
+  limitHit?: string;
   searchCost: number;
   maxDepth: number;
   goalReached: boolean;
