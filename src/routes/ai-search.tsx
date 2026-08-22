@@ -281,7 +281,7 @@ function AiSearchPage() {
           <h2 className="font-display text-lg font-bold">State space graph</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Highlighted edges are the chosen path for {result.algorithmName}. Click any state to
-            inspect it.
+            inspect it, double-click to collapse or expand its branch.
           </p>
           <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -298,9 +298,77 @@ function AiSearchPage() {
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block size-3 rounded-sm border-2 border-caution" />
-              current
+              current / animating
             </span>
           </div>
+
+          {/* Layout & filter controls */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-border bg-muted/50 p-3">
+            {(
+              [
+                ["showExplored", "Show explored"],
+                ["showFrontier", "Show frontier"],
+                ["showUnvisited", "Show unvisited"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={filters[key]}
+                  onCheckedChange={(v) => setFilters((f) => ({ ...f, [key]: Boolean(v) }))}
+                />
+                {label}
+              </label>
+            ))}
+            <div className="ml-auto flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={animating ? "default" : "outline"}
+                onClick={() => {
+                  if (animating) {
+                    setAnimating(false);
+                  } else if (result.path.length) {
+                    setAnimIndex(0);
+                    setAnimating(true);
+                  }
+                }}
+                disabled={result.path.length === 0}
+              >
+                {animating ? (
+                  <Pause className="size-4" aria-hidden="true" />
+                ) : (
+                  <Play className="size-4" aria-hidden="true" />
+                )}
+                {animating ? "Pause walk-through" : "Animate path"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setAnimating(false);
+                  setAnimIndex(-1);
+                }}
+              >
+                <RotateCcw className="size-4" aria-hidden="true" /> Stop
+              </Button>
+              {collapsed.length > 0 && (
+                <Button size="sm" variant="outline" onClick={() => setCollapsed([])}>
+                  Expand all ({collapsed.length})
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {animIndex >= 0 && result.path[animIndex] && (
+            <p className="mt-3 rounded-lg border border-caution bg-caution-soft p-3 text-sm">
+              <span className="font-semibold">
+                Step {animIndex + 1} of {result.path.length}:
+              </span>{" "}
+              {animIndex === 0
+                ? `Start at ${stateLabel(graph, result.path[0]!)}.`
+                : `${edgeBetween(graph, result.path[animIndex - 1]!, result.path[animIndex]!)?.action ?? "Move"} → ${stateLabel(graph, result.path[animIndex]!)}`}
+            </p>
+          )}
+
           <div className="mt-4">
             <StateGraph
               graph={graph}
@@ -310,22 +378,71 @@ function AiSearchPage() {
               {...(step ? { currentId: step.current } : {})}
               {...(selectedState ? { selectedId: selectedState } : {})}
               onSelect={setSelectedState}
+              filters={filters}
+              collapsed={collapsed}
+              onToggleCollapse={(id) =>
+                setCollapsed((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]))
+              }
+              animateIndex={animIndex}
             />
           </div>
 
+          {/* Node inspector */}
           {inspected && (
             <div className="mt-4 rounded-lg border border-border bg-muted/60 p-4">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                  <p className="eyebrow">{inspected.kind} state</p>
                   <p className="font-display text-base font-bold">
                     {inspected.code} · {inspected.label}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">{inspected.detail}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setSelectedState(null)}>
-                  Close
-                </Button>
+                <div className="flex gap-2">
+                  {(graph.edges[inspected.id] ?? []).length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCollapsed((c) =>
+                          c.includes(inspected.id)
+                            ? c.filter((x) => x !== inspected.id)
+                            : [...c, inspected.id],
+                        )
+                      }
+                    >
+                      {collapsed.includes(inspected.id) ? "Expand branch" : "Collapse branch"}
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={() => setSelectedState(null)}>
+                    Close
+                  </Button>
+                </div>
               </div>
+
+              {/* Role on the chosen path */}
+              <p className="mt-3 text-sm">
+                {pathIndex >= 0 ? (
+                  <>
+                    On the chosen path as move{" "}
+                    <span className="font-semibold">
+                      #{pathIndex + 1} of {result.path.length}
+                    </span>
+                    .{" "}
+                    {incomingPathEdge
+                      ? `Reached by “${incomingPathEdge.action}” (cost ${incomingPathEdge.cost}) from ${stateLabel(graph, result.path[pathIndex - 1]!)}.`
+                      : "This is the initial state."}{" "}
+                    {outgoingPathEdge
+                      ? `Next move: “${outgoingPathEdge.action}” (cost ${outgoingPathEdge.cost}) → ${stateLabel(graph, result.path[pathIndex + 1]!)}.`
+                      : "No further move — the path ends here."}
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">
+                    Not part of the chosen path for {result.algorithmName}.
+                  </span>
+                )}
+              </p>
+
               {inspectedH && (
                 <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4">
                   {[
@@ -347,15 +464,62 @@ function AiSearchPage() {
                   ))}
                 </div>
               )}
-              <p className="mt-3 text-xs text-muted-foreground">
-                Outgoing actions:{" "}
-                {(graph.edges[inspected.id] ?? [])
-                  .map((e) => `${e.action} → ${e.to} (cost ${e.cost})`)
-                  .join("; ") || "none — this is the goal state."}
-              </p>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="eyebrow">Parents (incoming transitions)</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {parentEdges.length === 0 && (
+                      <li className="text-xs text-muted-foreground">
+                        None — this is the start state.
+                      </li>
+                    )}
+                    {parentEdges.map((e) => (
+                      <li key={`${e.from}-${e.to}`}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedState(e.from)}
+                          className="w-full rounded border border-border bg-card p-2 text-left text-xs hover:border-primary"
+                        >
+                          <span className="font-semibold">{stateLabel(graph, e.from)}</span>
+                          <span className="block text-muted-foreground">
+                            move: “{e.action}” · cost {e.cost}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="eyebrow">Children (outgoing transitions)</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {(graph.edges[inspected.id] ?? []).length === 0 && (
+                      <li className="text-xs text-muted-foreground">
+                        None — this is the goal state.
+                      </li>
+                    )}
+                    {(graph.edges[inspected.id] ?? []).map((e) => (
+                      <li key={`${e.from}-${e.to}`}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedState(e.to)}
+                          className="w-full rounded border border-border bg-card p-2 text-left text-xs hover:border-primary"
+                        >
+                          <span className="font-semibold">{stateLabel(graph, e.to)}</span>
+                          <span className="block text-muted-foreground">
+                            move: “{e.action}” · cost {e.cost} · h(n){" "}
+                            {graph.heuristics[e.to]?.hCost ?? "—"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </section>
+
 
         {/* Path */}
         <section className="surface mt-6 p-5">
