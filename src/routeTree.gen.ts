@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiSearchRouteImport } from './routes/ai-search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DwmRouteImport } from './routes/dwm'
 import { Route as HelpRouteImport } from './routes/help'
@@ -22,6 +23,11 @@ import { Route as ApiPublicPredictRouteImport } from './routes/api/public/predic
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiSearchRoute = AiSearchRouteImport.update({
+  id: '/ai-search',
+  path: '/ai-search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -67,6 +73,7 @@ const ApiPublicPredictRoute = ApiPublicPredictRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
   '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
   '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
   '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-search'
     | '/dashboard'
     | '/dwm'
     | '/help'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-search'
     | '/dashboard'
     | '/dwm'
     | '/help'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ai-search'
     | '/dashboard'
     | '/dwm'
     | '/help'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiSearchRoute: typeof AiSearchRoute
   DashboardRoute: typeof DashboardRoute
   DwmRoute: typeof DwmRoute
   HelpRoute: typeof HelpRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-search': {
+      id: '/ai-search'
+      path: '/ai-search'
+      fullPath: '/ai-search'
+      preLoaderRoute: typeof AiSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -217,6 +237,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiSearchRoute: AiSearchRoute,
   DashboardRoute: DashboardRoute,
   DwmRoute: DwmRoute,
   HelpRoute: HelpRoute,

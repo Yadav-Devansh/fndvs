@@ -33,6 +33,7 @@ const links = [
   { to: "/history", label: "Records" },
   { to: "/dashboard", label: "Insights" },
   { to: "/dwm", label: "DWM Analytics" },
+  { to: "/ai-search", label: "AI Search" },
   { to: "/help", label: "Help" },
 ] as const;
 
