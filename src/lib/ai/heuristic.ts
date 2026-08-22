@@ -1,5 +1,5 @@
 import type { PredictionResult } from "@/lib/predict";
-import type { AiGraph, HeuristicBreakdown } from "./types";
+import type { AiGraph, HeuristicBreakdown, HeuristicWeights } from "./types";
 import { stepsToGoal, round1 } from "./stateSpace";
 
 /**
@@ -15,10 +15,33 @@ export const HEURISTIC_WEIGHTS = {
   uncertaintyReduction: 0.2,
 } as const;
 
+export const DEFAULT_HEURISTIC_WEIGHTS: HeuristicWeights = { ...HEURISTIC_WEIGHTS };
+
+/** Weights are normalised so `promise` always stays on a 0-100 scale. */
+function normalise(w?: Partial<HeuristicWeights>): HeuristicWeights {
+  const merged = { ...DEFAULT_HEURISTIC_WEIGHTS, ...(w ?? {}) };
+  const sum =
+    merged.topicRelevance +
+    merged.sourceRelevance +
+    merged.credibilityConcern +
+    merged.evidenceAvailability +
+    merged.uncertaintyReduction;
+  if (sum <= 0) return { ...DEFAULT_HEURISTIC_WEIGHTS };
+  return {
+    topicRelevance: merged.topicRelevance / sum,
+    sourceRelevance: merged.sourceRelevance / sum,
+    credibilityConcern: merged.credibilityConcern / sum,
+    evidenceAvailability: merged.evidenceAvailability / sum,
+    uncertaintyReduction: merged.uncertaintyReduction / sum,
+  };
+}
+
 export function buildHeuristics(
   graph: AiGraph,
   result: PredictionResult,
+  weights?: Partial<HeuristicWeights>,
 ): Record<string, HeuristicBreakdown> {
+  const w = normalise(weights);
   const dist = stepsToGoal(graph);
   const aspect = (id?: string) => result.aspects.find((a) => a.id === id);
   const topicSpecific = (result.topics[0] ?? "general") !== "general";
@@ -79,11 +102,11 @@ export function buildHeuristics(
     }
 
     const promise = round1(
-      topicRelevance * HEURISTIC_WEIGHTS.topicRelevance +
-        sourceRelevance * HEURISTIC_WEIGHTS.sourceRelevance +
-        credibilityConcern * HEURISTIC_WEIGHTS.credibilityConcern +
-        evidenceAvailability * HEURISTIC_WEIGHTS.evidenceAvailability +
-        uncertaintyReduction * HEURISTIC_WEIGHTS.uncertaintyReduction,
+      topicRelevance * w.topicRelevance +
+        sourceRelevance * w.sourceRelevance +
+        credibilityConcern * w.credibilityConcern +
+        evidenceAvailability * w.evidenceAvailability +
+        uncertaintyReduction * w.uncertaintyReduction,
     );
 
     const steps = dist[state.id] ?? 0;
