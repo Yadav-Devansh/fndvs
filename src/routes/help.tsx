@@ -50,18 +50,17 @@ const guides = [
   {
     title: "AI Search lab — how to use it",
     intro:
-      "The AI Search page applies four classical search algorithms to the ORDER of verification work. It never decides whether a claim is true; it only plans which aspect to check next and when to consult an official desk.",
+      "The AI Search page answers one question: for this claim, in what order should we do the verification checks? It compares an uninformed search (BFS) with an informed one (A*). It never decides whether a claim is true.",
     steps: [
-      "Paste a claim (or load one of your saved records) and press “Build state space”. The claim is scored by the FNDVS engine, and those scores become the costs and heuristic values of the graph.",
-      "Pick an algorithm: Breadth First Search (uninformed), Best First Search (greedy on the heuristic), Hill Climbing (local, may stop at a local maximum) or A* (optimal, f(n) = g(n) + h(n)).",
-      "Use Search controls to change max depth, max iterations and max frontier size, and to re-weight the five heuristic factors. Press “Re-run all algorithms” to apply.",
-      "In the State space graph, scroll to zoom, drag to pan, click a state to open the node inspector, and double-click a state to collapse or expand its branch. Toggle explored / frontier / unvisited to cut clutter.",
-      "Press “Animate path” to walk the chosen route node by node — each step names the exact move and its cost.",
-      "Read the step trace to see the frontier, the explored set and the candidate table with g(n), h(n), f(n) and pruning reasons.",
-      "Finish at the Side-by-side comparison to contrast runtime, expansions, path length, search cost and peak frontier across algorithms on the identical claim.",
+      "Paste a claim (or load a saved record) and press “Run search”. The FNDVS scores become the action costs and heuristic values of the state space.",
+      "Read the two cards: BFS versus A*. Compare states explored, plan length, total effort and runtime — the sentence below them states exactly what the heuristic saved.",
+      "Switch the graph between BFS and A* to see the two plans highlighted on the same state space. Click any box for the node inspector (exact move, cost, parents and children).",
+      "Press “Animate the plan” and read the numbered plan underneath — it is the human-readable order of verification work.",
+      "Only if asked: open Advanced settings for the other two algorithms, search limits, heuristic weights, the step-by-step trace with g(n)/h(n)/f(n), and the four-algorithm table.",
     ],
-    demo: "Demonstration tip: run the same claim through all four algorithms with default limits, then lower max depth to 3 and re-run — BFS and A* will report the depth limit while Hill Climbing halts at a local maximum. That contrast is the clearest way to show completeness versus optimality versus greediness.",
+    demo: "Demonstration script (about two minutes): run the sample claim, point at the two cards and say “both find the goal, A* looks at fewer states”, switch the graph BFS → A* to show the different routes, animate the A* plan, then open Advanced and lower max depth to 3 to show the limits and Hill Climbing stopping at a local maximum.",
   },
+
   {
     title: "DWM Analytics — how to use it",
     intro:
