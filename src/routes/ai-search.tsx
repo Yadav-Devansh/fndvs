@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw, SlidersHorizontal } from "lucide-react";
+
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
