@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StateGraph } from "@/components/ai/StateGraph";
+import { StateGraph, type GraphFilters } from "@/components/ai/StateGraph";
 import { predict } from "@/lib/predict";
 import {
   ALGORITHMS,
