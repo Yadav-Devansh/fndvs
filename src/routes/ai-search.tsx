@@ -63,6 +63,10 @@ const WEIGHT_FIELDS: { key: keyof HeuristicWeights; label: string }[] = [
   { key: "uncertaintyReduction", label: "Uncertainty reduction" },
 ];
 
+function edgeBetween(graph: AiGraph, from: string, to: string) {
+  return (graph.edges[from] ?? []).find((e) => e.to === to);
+}
+
 function AiSearchPage() {
   const records = useRecords();
   const [text, setText] = useState(SAMPLE);
@@ -70,6 +74,14 @@ function AiSearchPage() {
   const [analysed, setAnalysed] = useState(SAMPLE);
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [filters, setFilters] = useState<GraphFilters>({
+    showExplored: true,
+    showFrontier: true,
+    showUnvisited: true,
+  });
+  const [collapsed, setCollapsed] = useState<string[]>([]);
+  const [animIndex, setAnimIndex] = useState(-1);
+  const [animating, setAnimating] = useState(false);
 
   // Draft controls (edited by the user) vs applied settings (used by the search).
   const [draftOptions, setDraftOptions] = useState<SearchOptions>({ ...DEFAULT_OPTIONS });
@@ -91,10 +103,50 @@ function AiSearchPage() {
   );
 
   useEffect(() => setStepIndex(0), [algorithm, analysed, options, weights]);
+  useEffect(() => {
+    setAnimating(false);
+    setAnimIndex(-1);
+  }, [algorithm, analysed, options, weights]);
+
+  // Walk-through animation over the chosen path.
+  useEffect(() => {
+    if (!animating) return;
+    const timer = window.setInterval(() => {
+      setAnimIndex((i) => {
+        if (i >= result.path.length - 1) {
+          setAnimating(false);
+          return i;
+        }
+        return i + 1;
+      });
+    }, 900);
+    return () => window.clearInterval(timer);
+  }, [animating, result.path.length]);
+
+  useEffect(() => {
+    if (animIndex >= 0 && result.path[animIndex]) setSelectedState(result.path[animIndex]!);
+  }, [animIndex, result.path]);
 
   const step = result.steps[Math.min(stepIndex, result.steps.length - 1)];
   const inspected = selectedState ? graph.byId[selectedState] : undefined;
   const inspectedH = selectedState ? graph.heuristics[selectedState] : undefined;
+  const pathIndex = selectedState ? result.path.indexOf(selectedState) : -1;
+  const incomingPathEdge =
+    pathIndex > 0 ? edgeBetween(graph, result.path[pathIndex - 1]!, result.path[pathIndex]!) : undefined;
+  const outgoingPathEdge =
+    pathIndex >= 0 && pathIndex < result.path.length - 1
+      ? edgeBetween(graph, result.path[pathIndex]!, result.path[pathIndex + 1]!)
+      : undefined;
+  const parentEdges = useMemo(
+    () =>
+      selectedState
+        ? graph.states.flatMap((s) =>
+            (graph.edges[s.id] ?? []).filter((e) => e.to === selectedState),
+          )
+        : [],
+    [graph, selectedState],
+  );
+
 
   const applySettings = () => {
     setOptions({ ...draftOptions });
