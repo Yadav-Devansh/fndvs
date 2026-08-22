@@ -24,7 +24,9 @@ import {
   buildStateSpace,
   runAlgorithm,
   stateLabel,
+  type AiGraph,
   type AlgorithmId,
+
   type HeuristicWeights,
   type SearchOptions,
 } from "@/lib/ai";
