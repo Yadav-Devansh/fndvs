@@ -10,33 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DwmRouteImport } from './routes/dwm'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as SourcesRouteImport } from './routes/sources'
+import { Route as SubmitRouteImport } from './routes/submit'
+import { Route as ResultSubmissionIdRouteImport } from './routes/result.$submissionId'
+import { Route as ApiPublicPredictRouteImport } from './routes/api/public/predict'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DwmRoute = DwmRouteImport.update({
+  id: '/dwm',
+  path: '/dwm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubmitRoute = SubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultSubmissionIdRoute = ResultSubmissionIdRouteImport.update({
+  id: '/result/$submissionId',
+  path: '/result/$submissionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPredictRoute = ApiPublicPredictRouteImport.update({
+  id: '/api/public/predict',
+  path: '/api/public/predict',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/dwm': typeof DwmRoute
+  '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
+  '/sources': typeof SourcesRoute
+  '/submit': typeof SubmitRoute
+  '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/dwm': typeof DwmRoute
+  '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
+  '/sources': typeof SourcesRoute
+  '/submit': typeof SubmitRoute
+  '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/dwm': typeof DwmRoute
+  '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
+  '/sources': typeof SourcesRoute
+  '/submit': typeof SubmitRoute
+  '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/dwm'
+    | '/help'
+    | '/history'
+    | '/sources'
+    | '/submit'
+    | '/result/$submissionId'
+    | '/api/public/predict'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/dwm'
+    | '/help'
+    | '/history'
+    | '/sources'
+    | '/submit'
+    | '/result/$submissionId'
+    | '/api/public/predict'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/dwm'
+    | '/help'
+    | '/history'
+    | '/sources'
+    | '/submit'
+    | '/result/$submissionId'
+    | '/api/public/predict'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  DwmRoute: typeof DwmRoute
+  HelpRoute: typeof HelpRoute
+  HistoryRoute: typeof HistoryRoute
+  SourcesRoute: typeof SourcesRoute
+  SubmitRoute: typeof SubmitRoute
+  ResultSubmissionIdRoute: typeof ResultSubmissionIdRoute
+  ApiPublicPredictRoute: typeof ApiPublicPredictRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +156,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dwm': {
+      id: '/dwm'
+      path: '/dwm'
+      fullPath: '/dwm'
+      preLoaderRoute: typeof DwmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/submit': {
+      id: '/submit'
+      path: '/submit'
+      fullPath: '/submit'
+      preLoaderRoute: typeof SubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/result/$submissionId': {
+      id: '/result/$submissionId'
+      path: '/result/$submissionId'
+      fullPath: '/result/$submissionId'
+      preLoaderRoute: typeof ResultSubmissionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/predict': {
+      id: '/api/public/predict'
+      path: '/api/public/predict'
+      fullPath: '/api/public/predict'
+      preLoaderRoute: typeof ApiPublicPredictRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  DwmRoute: DwmRoute,
+  HelpRoute: HelpRoute,
+  HistoryRoute: HistoryRoute,
+  SourcesRoute: SourcesRoute,
+  SubmitRoute: SubmitRoute,
+  ResultSubmissionIdRoute: ResultSubmissionIdRoute,
+  ApiPublicPredictRoute: ApiPublicPredictRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
