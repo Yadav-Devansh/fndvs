@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Loader2, AlertTriangle, ShieldCheck, ImagePlus, ScanText, X } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Disclaimer } from "@/components/PredictionUI";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { MIN_TEXT, MAX_TEXT, type PredictionResult } from "@/lib/predict";
 import { addRecord } from "@/lib/store";
+import { extractTextFromImage, fileToDataUrl, shrinkDataUrl } from "@/lib/gemini";
 
 export const Route = createFileRoute("/submit")({
   component: SubmitPage,
