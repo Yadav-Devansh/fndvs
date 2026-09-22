@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MIN_TEXT, MAX_TEXT } from "@/lib/predict";
+import type { GeminiVerdict } from "@/lib/gemini";
 
 /**
  * POST /api/public/ai-verify
@@ -18,13 +19,6 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 
-export interface GeminiVerdict {
-  verdict: "likely-true" | "likely-false" | "unverifiable";
-  confidence: number;
-  reasoning: string;
-  signals: string[];
-  nextSteps: string[];
-}
 
 export const Route = createFileRoute("/api/public/ai-verify")({
   server: {

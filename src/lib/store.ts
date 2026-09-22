@@ -7,12 +7,19 @@
  */
 
 import { predict, type PredictionResult } from "./predict";
+import type { GeminiVerdict } from "./gemini";
 
 export interface VerificationRecord {
   id: string;
   text: string;
   submittedAt: string;
   result: PredictionResult;
+  /** Screenshot the claim text was read from, if any. */
+  imageDataUrl?: string;
+  /** True when the claim text came from an uploaded image. */
+  fromImage?: boolean;
+  /** Cached Gemini second opinion, attached after the report is opened. */
+  geminiVerdict?: GeminiVerdict;
 }
 
 const KEY = "fndvs.records.v2";
