@@ -62,7 +62,21 @@ function read(): VerificationRecord[] {
 
 function write(records: VerificationRecord[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(records.slice(0, 200)));
+  const capped = records.slice(0, 200);
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(capped));
+  } catch {
+    // Browser storage is full — most likely from stored screenshots. Drop the
+    // images (the reports themselves matter more) and try once more.
+    try {
+      window.localStorage.setItem(
+        KEY,
+        JSON.stringify(capped.map(({ imageDataUrl: _drop, ...rest }) => rest)),
+      );
+    } catch {
+      /* give up silently; the in-memory report still renders */
+    }
+  }
   window.dispatchEvent(new Event("fndvs:records"));
 }
 
