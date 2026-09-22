@@ -18,6 +18,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as ResultSubmissionIdRouteImport } from './routes/result.$submissionId'
+import { Route as ApiPublicAiVerifyRouteImport } from './routes/api/public/ai-verify'
 import { Route as ApiPublicPredictRouteImport } from './routes/api/public/predict'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const ResultSubmissionIdRoute = ResultSubmissionIdRouteImport.update({
   path: '/result/$submissionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAiVerifyRoute = ApiPublicAiVerifyRouteImport.update({
+  id: '/api/public/ai-verify',
+  path: '/api/public/ai-verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPredictRoute = ApiPublicPredictRouteImport.update({
   id: '/api/public/predict',
   path: '/api/public/predict',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
+  '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/submit'
     | '/result/$submissionId'
+    | '/api/public/ai-verify'
     | '/api/public/predict'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/submit'
     | '/result/$submissionId'
+    | '/api/public/ai-verify'
     | '/api/public/predict'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/sources'
     | '/submit'
     | '/result/$submissionId'
+    | '/api/public/ai-verify'
     | '/api/public/predict'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   SourcesRoute: typeof SourcesRoute
   SubmitRoute: typeof SubmitRoute
   ResultSubmissionIdRoute: typeof ResultSubmissionIdRoute
+  ApiPublicAiVerifyRoute: typeof ApiPublicAiVerifyRoute
   ApiPublicPredictRoute: typeof ApiPublicPredictRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultSubmissionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ai-verify': {
+      id: '/api/public/ai-verify'
+      path: '/api/public/ai-verify'
+      fullPath: '/api/public/ai-verify'
+      preLoaderRoute: typeof ApiPublicAiVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/predict': {
       id: '/api/public/predict'
       path: '/api/public/predict'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   SourcesRoute: SourcesRoute,
   SubmitRoute: SubmitRoute,
   ResultSubmissionIdRoute: ResultSubmissionIdRoute,
+  ApiPublicAiVerifyRoute: ApiPublicAiVerifyRoute,
   ApiPublicPredictRoute: ApiPublicPredictRoute,
 }
 export const routeTree = rootRouteImport

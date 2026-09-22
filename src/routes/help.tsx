@@ -48,6 +48,19 @@ const faqs = [
 
 const guides = [
   {
+    title: "Screenshots and the Gemini second opinion",
+    intro:
+      "Most people never retype a forwarded message, so the verify page also accepts a picture, and every report carries two independent reads of the claim.",
+    steps: [
+      "On Verify a claim, drop in a screenshot of an article, a social post or a WhatsApp forward (PNG, JPG or WebP up to 8 MB), then press “Extract text from image”. The claim text appears in the box, where you can edit it before running the check.",
+      "If the picture has no readable claim in it, you'll be asked to type the claim instead — the rest of the flow is unchanged.",
+      "The report opens on the Final inference panel: the rule-based verdict on the left, the Gemini verdict on the right, and one plain sentence saying whether they agree.",
+      "Open the Gemini analysis tab and press “Run Gemini analysis” for its verdict, confidence, what it noticed and what you should check next. The answer is saved with the report, so it doesn't re-run each visit.",
+      "When the two disagree, that's the interesting case: one judges how the claim is written, the other reasons about what it says. Gemini has no live internet access here, so finish with the official sources in the rule-based tab.",
+    ],
+    demo: "Demonstration tip: keep one screenshot of a sensational forward ready. Extract it live, run the check, then run Gemini — a disagreement between the two engines is the strongest talking point you can show.",
+  },
+  {
     title: "AI Search lab — how to use it",
     intro:
       "The AI Search page answers one question: for this claim, in what order should we do the verification checks? It compares an uninformed search (BFS) with an informed one (A*). It never decides whether a claim is true.",
