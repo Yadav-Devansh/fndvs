@@ -74,15 +74,34 @@ export function getRecord(id: string): VerificationRecord | undefined {
   return read().find((r) => r.id === id);
 }
 
-export function addRecord(text: string, result: PredictionResult): VerificationRecord {
+export function addRecord(
+  text: string,
+  result: PredictionResult,
+  extra?: Pick<VerificationRecord, "imageDataUrl" | "fromImage">,
+): VerificationRecord {
   const record: VerificationRecord = {
     id: `chk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     text,
     submittedAt: new Date().toISOString(),
     result,
+    ...(extra ?? {}),
   };
   write([record, ...read()]);
   return record;
+}
+
+/** Merges fields into a stored record (used to cache the Gemini verdict). */
+export function updateRecord(
+  id: string,
+  patch: Partial<Omit<VerificationRecord, "id">>,
+): VerificationRecord | undefined {
+  const records = read();
+  const index = records.findIndex((r) => r.id === id);
+  if (index === -1) return undefined;
+  const updated = { ...records[index]!, ...patch };
+  records[index] = updated;
+  write(records);
+  return updated;
 }
 
 export function clearRecords() {
