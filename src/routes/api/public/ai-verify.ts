@@ -73,29 +73,52 @@ export const Route = createFileRoute("/api/public/ai-verify")({
   },
 });
 
+/** Only rate limits and upstream faults are worth retrying. */
+const RETRYABLE = (status: number) => status === 429 || status >= 500;
+
 async function callGateway(key: string, messages: unknown[], jsonMode: boolean) {
-  const res = await fetch(GATEWAY, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "fetch",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
-    }),
+  const body = JSON.stringify({
+    model: MODEL,
+    messages,
+    ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
   });
 
-  if (!res.ok) {
+  let last = { ok: false as const, status: 502, detail: "" };
+
+  // Up to three attempts with backoff: the model provider occasionally answers
+  // 503 ("upstream_error") on an otherwise valid request.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 800 * attempt));
+
+    let res: Response;
+    try {
+      res = await fetch(GATEWAY, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "Lovable-API-Key": key,
+          "X-Lovable-AIG-SDK": "fetch",
+        },
+        body,
+      });
+    } catch (e) {
+      last = { ok: false as const, status: 503, detail: String(e).slice(0, 300) };
+      continue;
+    }
+
+    if (res.ok) {
+      const data = (await res.json().catch(() => ({}))) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      return { ok: true as const, content: data.choices?.[0]?.message?.content ?? "" };
+    }
+
     const detail = await res.text().catch(() => "");
-    return { ok: false as const, status: res.status, detail };
+    last = { ok: false as const, status: res.status, detail };
+    if (!RETRYABLE(res.status)) break;
   }
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  return { ok: true as const, content: data.choices?.[0]?.message?.content ?? "" };
+
+  return last;
 }
 
 function gatewayError(status: number, detail: string) {
@@ -112,7 +135,13 @@ function gatewayError(status: number, detail: string) {
     return json({ error: "Gemini analysis is not available for this workspace." }, 403);
   }
   console.error("ai-verify gateway error", status, detail.slice(0, 500));
-  return json({ error: "Gemini analysis failed — please try again." }, 502);
+  return json(
+    {
+      error:
+        "The AI service is busy right now and didn't answer — please press the button again in a few seconds.",
+    },
+    503,
+  );
 }
 
 async function runExtract(key: string, image: string) {
