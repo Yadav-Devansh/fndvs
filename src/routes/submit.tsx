@@ -35,15 +35,67 @@ const SAMPLES = [
   "According to a press release from the Ministry of Railways dated 4 March 2025, the new 62 km suburban line will open for service after a safety inspection by the Commissioner of Railway Safety.",
 ];
 
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+
 function SubmitPage() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
   const [forceError, setForceError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extracted, setExtracted] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const trimmed = text.trim();
   const lengthValid = trimmed.length >= MIN_TEXT && trimmed.length <= MAX_TEXT;
+
+  const acceptFile = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("Please choose a PNG, JPG or WebP image.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError("That image is larger than 8 MB — please use a smaller screenshot.");
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setImageDataUrl(dataUrl);
+      setImageName(file.name);
+      setExtracted(false);
+    } catch {
+      setError("Could not read that image file.");
+    }
+  };
+
+  const clearImage = () => {
+    setImageDataUrl(null);
+    setImageName(null);
+    setExtracted(false);
+    if (fileInput.current) fileInput.current.value = "";
+  };
+
+  const onExtract = async () => {
+    if (!imageDataUrl) return;
+    setError(null);
+    setExtracting(true);
+    try {
+      const found = await extractTextFromImage(imageDataUrl);
+      setText(found.slice(0, MAX_TEXT));
+      setExtracted(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read text from that image.");
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +113,11 @@ function SubmitPage() {
       });
       if (!response.ok) throw new Error("prediction-failed");
       const result = (await response.json()) as PredictionResult;
-      const record = addRecord(trimmed, result);
+      const thumbnail = imageDataUrl ? await shrinkDataUrl(imageDataUrl) : undefined;
+      const record = addRecord(trimmed, result, {
+        ...(thumbnail ? { imageDataUrl: thumbnail } : {}),
+        ...(extracted ? { fromImage: true } : {}),
+      });
       void navigate({ to: "/result/$submissionId", params: { submissionId: record.id } });
     } catch {
       setError("The analysis service is unavailable right now — please try again.");
