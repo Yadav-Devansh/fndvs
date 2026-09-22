@@ -136,6 +136,84 @@ function SubmitPage() {
         />
 
         <form className="mt-8 space-y-5" onSubmit={onSubmit}>
+          <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4">
+            <div>
+              <Label>Have a screenshot instead?</Label>
+              <p className="text-xs text-muted-foreground">
+                Add a photo of an article, a social post or a forwarded WhatsApp chat and we'll read
+                the claim out of it for you. You can edit the text before running the check.
+              </p>
+            </div>
+
+            {!imageDataUrl ? (
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  void acceptFile(e.dataTransfer.files?.[0]);
+                }}
+                className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors ${
+                  dragging ? "border-primary bg-accent" : "border-border"
+                }`}
+              >
+                <ImagePlus className="size-6 text-muted-foreground" aria-hidden="true" />
+                <p className="text-sm text-muted-foreground">
+                  Drop an image here, or choose a file. PNG, JPG or WebP up to 8 MB.
+                </p>
+                <Button type="button" variant="outline" onClick={() => fileInput.current?.click()}>
+                  Choose image
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-start gap-4">
+                <img
+                  src={imageDataUrl}
+                  alt="Uploaded screenshot to be checked"
+                  className="max-h-40 w-auto rounded-md border border-border object-contain"
+                />
+                <div className="flex min-w-[12rem] flex-1 flex-col gap-2">
+                  <span className="truncate text-xs text-muted-foreground">{imageName}</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" onClick={onExtract} disabled={extracting}>
+                      {extracting ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Reading
+                          image…
+                        </>
+                      ) : (
+                        <>
+                          <ScanText className="mr-2 size-4" aria-hidden="true" /> Extract text from
+                          image
+                        </>
+                      )}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={clearImage}>
+                      <X className="mr-2 size-4" aria-hidden="true" /> Remove
+                    </Button>
+                  </div>
+                  {extracted && (
+                    <p className="text-xs font-medium text-real">
+                      Text read from the image — check it below, then run the verification.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(e) => void acceptFile(e.target.files?.[0])}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="news-text">News text, forwarded message or claim</Label>
             <Textarea
