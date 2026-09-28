@@ -52,7 +52,8 @@ export function clusterSample(rows: ScoredHeadline[], k: number) {
   }).sort((a, b) => b.v - a.v);
   const ax = variance[0]!.id, ay = variance[1]!.id;
   const step = Math.max(1, Math.floor(rows.length / 1500));
-  const points = rows.filter((_, i) => i % step === 0).map((r) => ({ x: r.scores[ax], y: r.scores[ay], c: labels[r.id === undefined ? 0 : rows.indexOf(r)] ?? 0 }));
+  const points: { x: number; y: number; c: number }[] = [];
+  for (let i = 0; i < rows.length; i += step) points.push({ x: rows[i]!.scores[ax], y: rows[i]!.scores[ay], c: labels[i] ?? 0 });
   return { clusters, labels, axes: [ax, ay] as [AspectId, AspectId], points, silhouette: silhouette(rows, labels) };
 }
 
