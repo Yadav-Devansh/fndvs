@@ -31,7 +31,7 @@ export function SyntheticBanner() {
   );
 }
 
-export function Card({ title, caption, children, className = "" }: { title: string; caption?: string; children: ReactNode; className?: string }) {
+export function Card({ title, caption, children, className = "" }: { title: string; caption?: string | undefined; children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
       <h3 className="text-base font-semibold">{title}</h3>

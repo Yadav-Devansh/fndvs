@@ -287,7 +287,7 @@ function ImportPage() {
                 <li>Category = first dotted segment, mapped to 10 groups; groups under 0.5% merged into Other.</li>
                 <li>Keep only the {d.windowYears}-year window ending at the dataset's latest date.</li>
               </ol>
-              {d.labelled === undefined && result?.labelled && <p className="mt-2 text-xs">Validation: {result.labelled.datasetName}</p>}
+              {result?.labelled && <p className="mt-2 text-xs">Validation: {result.labelled.datasetName}</p>}
               <Button asChild className="mt-4"><Link to="/dwm">See the final inference</Link></Button>
             </div>
           )}
