@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Disclaimer } from "@/components/PredictionUI";
 import { useRecords } from "@/routes/history";
 import {
   ASPECT_IDS,
