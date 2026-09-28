@@ -52,7 +52,7 @@ export function inference(agg: DwmAggregates, a: Analysis) {
   const findings: Finding[] = [];
   findings.push({
     icon: "trend", title: "Overall trend", value: a.trend.direction,
-    body: `The monthly risk-signal rate is ${a.trend.direction} (slope ${r2(a.trend.slope)} pp per month, R² ${r2(a.trend.r2)}). ${a.trend.r2 < 0.2 ? "The fit is weak, so month-to-month noise dominates." : "The fit explains a meaningful share of the variation."}`,
+    body: `The monthly risk-signal rate is ${a.trend.direction} (slope ${a.trend.slope.toFixed(3)} pp per month, R² ${r2(a.trend.r2)}). ${a.trend.r2 < 0.2 ? "The fit is weak, so month-to-month noise dominates." : "The fit explains a meaningful share of the variation."}`,
   });
   const ranked = a.cats.filter((c) => !c.small);
   const hi = ranked[0], lo = ranked[ranked.length - 1];
