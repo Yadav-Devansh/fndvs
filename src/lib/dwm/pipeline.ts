@@ -142,9 +142,12 @@ export function ymdToIso(n: number): string {
   return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
 }
 
-/** Window start = maxDate minus N years (same month/day). */
+/** Window start = first day of the month after (maxDate minus N years), so the window spans exactly N years. */
 export function windowStartFor(maxYmd: number, years: number): number {
-  return maxYmd - years * 10000 + 1;
+  let y = Math.floor(maxYmd / 10000) - years;
+  let m = (Math.floor(maxYmd / 100) % 100) + 1;
+  if (m > 12) { m = 1; y++; }
+  return y * 10000 + m * 100 + 1;
 }
 
 // ---------------------------------------------------------------- CSV parsing
