@@ -36,13 +36,14 @@ async function runHeadlines(m: Extract<WorkerIn, { type: "headlines" }>) {
   const probe: string[] = [];
   let maxYmd = 0;
   let dated = 0;
+  const perYear = new Map<number, number>();
   let bytes = 0;
   const t0 = performance.now();
   await streamRows(file, () => {}, (r) => {
     const v = r[cols.date] ?? "";
     if (fmt === "AUTO") { probe.push(v); if (probe.length >= 1000) { fmt = detectDateFormat(probe); for (const p of probe) { const d = parseDate(p, fmt); if (d !== null && d > maxYmd) maxYmd = d; } } return; }
     const d = parseDate(v, fmt);
-    if (d !== null) { dated++; if (d > maxYmd) maxYmd = d; }
+    if (d !== null) { dated++; const y = Math.floor(d / 10000); perYear.set(y, (perYear.get(y) ?? 0) + 1); if (d > maxYmd) maxYmd = d; }
   }, {
     onBytes: (n) => {
       bytes += n;
@@ -61,7 +62,7 @@ async function runHeadlines(m: Extract<WorkerIn, { type: "headlines" }>) {
     windowEndYmd: maxYmd,
     windowYears: m.years,
     sampleSize: 10000,
-    ...(m.sampleN ? { scoreFraction: Math.min(1, m.sampleN / Math.max(1, dated * (m.years / 20))) } : {}),
+    ...(m.sampleN ? { scoreFraction: Math.min(1, m.sampleN / Math.max(1, [...perYear].filter(([y]) => y >= Math.floor(startYmd / 10000)).reduce((a, [, n]) => a + n, 0))) } : {}),
     processingMode: m.sampleN ? `Random sample of about ${m.sampleN.toLocaleString("en-IN")} rows in window` : "All rows in window",
   });
 
