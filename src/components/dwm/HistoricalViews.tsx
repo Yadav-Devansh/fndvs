@@ -31,7 +31,7 @@ export function SyntheticBanner() {
   );
 }
 
-export function Card({ title, caption, children, className = "" }: { title: string; caption?: string; children: ReactNode; className?: string }) {
+export function Card({ title, caption, children, className = "" }: { title: string; caption?: string | undefined; children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
       <h3 className="text-base font-semibold">{title}</h3>
@@ -170,7 +170,7 @@ export function TrendsTab({ agg, a }: { agg: DwmAggregates; a: Analysis }) {
   const events = t.points.filter((p) => p.event);
   return (
     <div className="grid gap-4">
-      <Card title="Monthly risk-signal rate" caption={`The rate is ${t.direction}: slope ${r2(t.slope)} pp/month, R² ${r2(t.r2)}. ${t.points.filter((p) => p.spike).length} spike month(s) above mean + 1.5σ are marked in red.`}>
+      <Card title="Monthly risk-signal rate" caption={`The rate is ${t.direction}: slope ${t.slope.toFixed(3)} pp/month, R² ${r2(t.r2)}. ${t.points.filter((p) => p.spike).length} spike month(s) above mean + 1.5σ are marked in red.`}>
         <div className="mb-3 flex items-center gap-2 text-xs">
           Moving average:
           {[3, 6, 12].map((w) => <Button key={w} size="sm" variant={w === win ? "default" : "outline"} onClick={() => setWin(w)}>{w} months</Button>)}
