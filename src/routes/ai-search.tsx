@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { ClaimInput, SAMPLE_CLAIMS } from "@/components/ai-search/ClaimInput";
@@ -40,7 +40,10 @@ function AiSearchPage() {
   const [treeAlgo, setTreeAlgo] = useState<AlgorithmId>("astar");
   const [selected, setSelected] = useState<number | null>(null);
 
-  const ready = text.trim().length >= 20;
+  // Runtimes differ between server and browser, so search only runs after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const ready = mounted && text.trim().length >= 20;
   const data = useMemo(() => {
     if (!ready) return null;
     const problem = problemFor(analyze(text), { tau, costs });
@@ -67,7 +70,7 @@ function AiSearchPage() {
 
         <ClaimInput text={text} onChange={(t) => { setText(t); setSelected(null); }} records={records} />
 
-        {!data && <p className="text-sm text-muted-foreground">Enter at least 20 characters.</p>}
+        {mounted && !data && <p className="text-sm text-muted-foreground">Enter at least 20 characters.</p>}
 
         {data && tree && (
           <>
@@ -87,7 +90,7 @@ function AiSearchPage() {
                 </button>
               ))}
             </div>
-            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <SearchTree problem={data.problem} result={tree} selected={selected} onSelect={setSelected} />
               <NodeInspector problem={data.problem} result={tree} id={selected} />
             </div>

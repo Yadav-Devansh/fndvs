@@ -56,7 +56,7 @@ export function SearchTree({
   }, [nodes]);
 
   return (
-    <div className="surface p-4">
+    <div className="surface min-w-0 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="eyebrow">Search tree explored by {result.name}</h2>
         <div className="flex flex-wrap gap-3 text-xs">
