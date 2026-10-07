@@ -139,3 +139,14 @@ export function setLabel(p: Problem, mask: number): string {
   if (mask === 0) return "{ }";
   return `{${p.checks.filter((_, i) => mask & (1 << i)).map((c) => c.label).join(", ")}}`;
 }
+
+/** Run order for a chosen set: best gain per cost first ("why this order"). */
+export function orderPlan(p: Problem, plan: number[]): number[] {
+  return [...plan].sort((a, b) => {
+    const ca = p.checks[a]!;
+    const cb = p.checks[b]!;
+    const ra = ca.gain > 0 ? ca.cost / ca.gain : Infinity;
+    const rb = cb.gain > 0 ? cb.cost / cb.gain : Infinity;
+    return ra - rb || a - b;
+  });
+}
