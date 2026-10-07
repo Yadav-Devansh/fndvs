@@ -34,3 +34,8 @@ dist-ssr
 # raw datasets (never commit)
 /data/
 *.tsbuildinfo
+
+# env files (keep .env.example)
+.env
+.env.*
+!.env.example
