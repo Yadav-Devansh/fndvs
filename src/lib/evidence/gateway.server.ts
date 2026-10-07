@@ -3,8 +3,12 @@ import { jsonError } from "../api-guard.server";
 import { GROUNDED_SYSTEM_PROMPT, buildGroundedUserPrompt, parseGrounded } from "./grounded";
 import type { EvidenceItem, GeminiLookup } from "./types";
 
-export const GEMINI_MODEL = "google/gemini-3.8-flash";
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+// TODO(owner): verify this model id is still listed by the Lovable AI Gateway.
+export const DEFAULT_AI_MODEL = "google/gemini-3.8-flash";
+export const DEFAULT_AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+/** Read at call time (env is injected per request); AI_MODEL / AI_GATEWAY_URL override the defaults. */
+export const aiModel = () => process.env["AI_MODEL"] || DEFAULT_AI_MODEL;
+const gatewayUrl = () => process.env["AI_GATEWAY_URL"] || DEFAULT_AI_GATEWAY_URL;
 const RETRYABLE = (status: number) => status === 429 || status >= 500;
 
 export type GatewayResult = { ok: true; content: string } | { ok: false; status: number; detail: string };
@@ -14,8 +18,9 @@ export async function callGateway(
   messages: unknown[],
   opts: { jsonMode?: boolean; temperature?: number } = {},
 ): Promise<GatewayResult> {
+  const GATEWAY = gatewayUrl();
   const body = JSON.stringify({
-    model: GEMINI_MODEL,
+    model: aiModel(),
     messages,
     ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
     ...(opts.jsonMode ? { response_format: { type: "json_object" } } : {}),
