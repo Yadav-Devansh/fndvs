@@ -8,6 +8,8 @@ import { SearchTree } from "@/components/ai-search/SearchTree";
 import { NodeInspector } from "@/components/ai-search/NodeInspector";
 import { AdvancedPanel } from "@/components/ai-search/AdvancedPanel";
 import { HowItWorks } from "@/components/ai-search/HowItWorks";
+import { SearchInference } from "@/components/ai-search/SearchInference";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyze } from "@/lib/detect";
 import { DEFAULT_TAU, astar, bfs, greedy, hillClimb, problemFor, ucs, type AlgorithmId } from "@/lib/planner";
 import { useRecords } from "./history";
@@ -34,7 +36,7 @@ const TREE_ALGOS: AlgorithmId[] = ["bfs", "ucs", "astar"];
 
 function AiSearchPage() {
   const records = useRecords();
-  const [text, setText] = useState(SAMPLE_CLAIMS[0]!.text);
+  const [text, setText] = useState(SAMPLE_CLAIMS[0]?.text ?? "");
   const [tau, setTau] = useState(DEFAULT_TAU);
   const [costs, setCosts] = useState<Record<string, number>>({});
   const [treeAlgo, setTreeAlgo] = useState<AlgorithmId>("astar");
@@ -90,10 +92,21 @@ function AiSearchPage() {
                 </button>
               ))}
             </div>
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-              <SearchTree problem={data.problem} result={tree} selected={selected} onSelect={setSelected} />
-              <NodeInspector problem={data.problem} result={tree} id={selected} />
-            </div>
+            <Tabs defaultValue="tree" className="space-y-4">
+              <TabsList aria-label="Search results view">
+                <TabsTrigger value="tree">Search tree</TabsTrigger>
+                <TabsTrigger value="inference">Inference</TabsTrigger>
+              </TabsList>
+              <TabsContent value="tree">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <SearchTree problem={data.problem} result={tree} selected={selected} onSelect={setSelected} />
+                  <NodeInspector problem={data.problem} result={tree} id={selected} />
+                </div>
+              </TabsContent>
+              <TabsContent value="inference">
+                <SearchInference problem={data.problem} result={tree} results={[data.bfs, data.ucs, data.astar]} />
+              </TabsContent>
+            </Tabs>
 
             <HowItWorks />
 
