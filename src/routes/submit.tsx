@@ -89,7 +89,9 @@ function SubmitPage() {
     setError(null);
     setExtracting(true);
     try {
-      const found = await extractTextFromImage(imageDataUrl);
+      // Downscale large phone screenshots so the upload stays well under the size limit.
+      const sendable = await shrinkDataUrl(imageDataUrl, 2000, 0.85);
+      const found = await extractTextFromImage(sendable);
       setText(found.slice(0, MAX_TEXT));
       setExtracted(true);
     } catch (e) {

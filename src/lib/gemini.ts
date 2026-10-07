@@ -47,7 +47,7 @@ export function fileToDataUrl(file: File): Promise<string> {
 }
 
 /** Small JPEG copy of the screenshot, so the saved report stays inside browser storage. */
-export async function shrinkDataUrl(dataUrl: string, maxSide = 900): Promise<string> {
+export async function shrinkDataUrl(dataUrl: string, maxSide = 900, quality = 0.7): Promise<string> {
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image();
@@ -61,8 +61,10 @@ export async function shrinkDataUrl(dataUrl: string, maxSide = 900): Promise<str
     canvas.height = Math.max(1, Math.round(img.height * scale));
     const ctx = canvas.getContext("2d");
     if (!ctx) return dataUrl;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.7);
+    return canvas.toDataURL("image/jpeg", quality);
   } catch {
     return dataUrl;
   }
