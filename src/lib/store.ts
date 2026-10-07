@@ -54,7 +54,10 @@ function read(): VerificationRecord[] {
       window.localStorage.setItem(KEY, JSON.stringify(seeded));
       return seeded;
     }
-    return JSON.parse(raw) as VerificationRecord[];
+    // Records saved by the old engine are re-scored so every screen sees one shape.
+    return (JSON.parse(raw) as VerificationRecord[]).map((r) =>
+      r.result && "verdict" in r.result ? r : { ...r, result: predict(r.text) },
+    );
   } catch {
     return [];
   }
