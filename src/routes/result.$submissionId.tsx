@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, CircleSlash, ExternalLink, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import {
   LabelBadge,
@@ -118,11 +118,7 @@ function ResultPage() {
                   {busy ? "Checking sources…" : "Check again"}
                 </Button>
               </div>
-              {busy && !report && (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Looking up published fact-checks and news coverage…
-                </p>
-              )}
+              {busy && <CheckProgress />}
               {error && (
                 <div role="alert" className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/40 bg-fake-soft p-4 text-sm font-medium text-destructive">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -161,8 +157,16 @@ function ResultPage() {
                   {report.plan.costIfAll} for running everything.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Ran: {report.plan.executed.join(", ") || "none"}. Chosen by the A* planner to reach enough evidence at the lowest cost.
+                  Chosen by the A* planner to reach enough evidence at the lowest cost.
                 </p>
+                <ul className="mt-3 flex flex-wrap gap-2" aria-label="Checks in the plan">
+                  {report.plan.plan.map((c) => (
+                    <li key={c.id} className="flex items-center gap-1.5">
+                      <span>{c.label}</span>
+                      <StatusChip status={c.status === "run" ? "ok" : "skipped"} />
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 
@@ -237,6 +241,49 @@ function LanguageChip({ risk }: { risk: LanguageRisk }) {
   );
 }
 
+const CHIP = {
+  ok: { text: "Done", Icon: CheckCircle2, cls: "border-real/50 text-foreground" },
+  skipped: { text: "Skipped by plan", Icon: CircleSlash, cls: "border-border text-muted-foreground" },
+  "not-configured": { text: "Not configured", Icon: Ban, cls: "border-border text-muted-foreground" },
+  error: { text: "Failed", Icon: XCircle, cls: "border-destructive/60 text-destructive" },
+} as const;
+
+/** Status chip: always icon + word, never colour alone. */
+function StatusChip({ status }: { status: LookupStatus }) {
+  const { text, Icon, cls } = CHIP[status];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}>
+      <Icon className="size-3.5" aria-hidden="true" />
+      {text}
+    </span>
+  );
+}
+
+const STAGES = ["Checking wording signals", "Matching official sources", "Searching published fact-checks", "Searching news coverage", "AI read of the evidence"];
+
+/** The server runs checks in one request, so this shows the usual order with an estimated current step. */
+function CheckProgress() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((n) => Math.min(n + 1, STAGES.length - 1)), 1200);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div role="status" aria-live="polite" className="mt-3 text-sm">
+      <p className="font-medium">Now: {STAGES[i]}…</p>
+      <ol className="mt-2 space-y-1 text-muted-foreground">
+        {STAGES.map((s, n) => (
+          <li key={s} className="flex items-center gap-2">
+            {n < i ? <CheckCircle2 className="size-4" aria-hidden="true" /> : n === i ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <span className="inline-block size-4" aria-hidden="true" />}
+            <span className={n === i ? "text-foreground" : ""}>{s}{n < i ? " (done)" : n === i ? " (running)" : ""}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-1 text-xs text-muted-foreground">Order shown is typical; the planner may skip some checks.</p>
+    </div>
+  );
+}
+
 function StatusNote({ status, message }: { status: LookupStatus; message?: string | undefined }) {
   if (status === "ok") return null;
   return <p className="mt-2 text-sm text-muted-foreground">{message ?? "Not available."}</p>;
@@ -257,7 +304,7 @@ function EvidenceList({ report }: { report: VerificationReport }) {
       )}
 
       <section>
-        <h3 className="text-sm font-semibold">Published fact-checks</h3>
+        <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">Published fact-checks <StatusChip status={factCheck.status} /></h3>
         <StatusNote status={factCheck.status} message={factCheck.message} />
         {factCheck.status === "ok" && factCheck.records.length === 0 && (
           <p className="mt-2 text-sm text-muted-foreground">No published fact-check matched this claim.</p>
@@ -280,7 +327,7 @@ function EvidenceList({ report }: { report: VerificationReport }) {
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold">News coverage (last {news.windowDays} days)</h3>
+        <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">News coverage (last {news.windowDays} days) <StatusChip status={news.status} /></h3>
         <StatusNote status={news.status} message={news.message} />
         {news.status === "ok" && (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -294,7 +341,7 @@ function EvidenceList({ report }: { report: VerificationReport }) {
           {relevantNews.map((a) => (
             <li key={a.id} className="text-sm">
               <span className="mr-2 rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{a.id}</span>
-              <a href={a.url} target="_blank" rel="noreferrer" className="font-medium underline">{a.title}</a>{" "}
+              <a href={a.url} target="_blank" rel="noreferrer" className="font-medium underline focus-visible:outline-2 focus-visible:outline-ring">{a.title}</a>{" "}
               <span className="text-muted-foreground">
                 — {a.domain}{a.reputable ? " (reputable)" : " (not on allow-list)"}
               </span>
@@ -304,7 +351,7 @@ function EvidenceList({ report }: { report: VerificationReport }) {
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold">AI read of the evidence (Gemini, evidence-only)</h3>
+        <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">AI read of the evidence (Gemini, evidence-only) <StatusChip status={gemini.status} /></h3>
         <StatusNote status={gemini.status} message={gemini.message} />
         {gemini.result && (
           <div className="mt-2 text-sm">

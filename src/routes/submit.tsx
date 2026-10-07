@@ -281,7 +281,7 @@ function SubmitPage() {
           <Button type="submit" size="lg" disabled={!lengthValid || busy} className="w-full sm:w-auto">
             {busy ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Analysing…
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Checking wording signals…
               </>
             ) : (
               <>
@@ -289,6 +289,12 @@ function SubmitPage() {
               </>
             )}
           </Button>
+
+          {busy && (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              Step 1 of 2: checking wording signals. Fact-check and news lookups run on the next page.
+            </p>
+          )}
 
           <Disclaimer />
         </form>
