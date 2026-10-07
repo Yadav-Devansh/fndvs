@@ -353,10 +353,11 @@ export function SearchInference({
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           h comes from a fractional-knapsack relaxation: cover the remaining gain with the cheapest gain-per-cost checks,
           allowing a fraction of the last one. Letting a check be taken in fractions can only make the cover cheaper or
-          equal, so h never overestimates what is really left (admissible); and taking any check whole is one feasible
-          relaxed cover, so h(S) ≤ cost(c) + h(S ∪ {c}) (consistent). With positive costs, an admissible and consistent
-          h means A* returns a minimum-cost plan whenever the search completes — and it is tested for both properties in
-          the project's test suite. The picture illustrates one run; the guarantee comes from those assumptions.
+          equal, so h never overestimates what is really left (admissible); and taking any one check whole is itself a
+          feasible relaxed cover, so h(S) ≤ cost of that check + h(S with it added) (consistent). With positive costs, an
+          admissible and consistent h means A* returns a minimum-cost plan whenever the search completes — and both
+          properties are checked in the project's test suite. The picture illustrates one run; the guarantee comes from
+          those assumptions.
         </p>
       </div>
 
