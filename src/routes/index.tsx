@@ -12,6 +12,13 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { OFFICIAL_SOURCES } from "@/lib/sources";
+import { predict } from "@/lib/predict";
+import { LabelBadge } from "@/components/PredictionUI";
+
+const SAMPLE_TEXT =
+  "SHOCKING: Doctors hate this miracle cure they don't want you to know about — share before it is deleted!!!";
+/** Real engine output for the sample, computed at render — no hard-coded numbers. */
+const SAMPLE = predict(SAMPLE_TEXT);
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -21,13 +28,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Paste any headline or forwarded message and get an eight-point credibility analysis, a confidence score, and the official Indian source — PIB Fact Check, NITI Aayog, RBI, IMD and more — to confirm it against.",
+          "Paste any headline or forwarded message. FNDVS checks the wording for risk signals and points you to the official Indian source — PIB Fact Check, NITI Aayog, RBI, IMD and more — to confirm it against.",
       },
       { property: "og:title", content: "FNDVS — Verify news against official Indian sources" },
       {
         property: "og:description",
         content:
-          "Eight-point credibility analysis with confidence scoring and links to authoritative Indian government desks.",
+          "Checks wording for risk signals and links you to authoritative Indian government desks to confirm the facts.",
       },
     ],
   }),
@@ -41,19 +48,19 @@ const aspects = [
   "Factual specificity",
   "Writing-style integrity",
   "Clickbait framing",
-  "Official corroboration path",
+  "Corroboration (not checked yet)",
 ];
 
 const pillars = [
   {
     icon: ListTree,
-    title: "Eight-aspect breakdown",
-    body: "Each report scores eight independent credibility dimensions and shows the exact words that triggered every flag.",
+    title: "Linguistic risk signals",
+    body: "Each report reads the wording — tone, pressure, framing — and shows the exact words behind every flag. It reads wording, not facts.",
   },
   {
     icon: Gauge,
-    title: "Honest confidence scoring",
-    body: "A 0–100% score on every verdict. Anything under 60% is labelled low confidence up front, never buried.",
+    title: "Honest about limits",
+    body: "The wording check alone never calls a claim credible. At most it flags a message as likely misleading; everything else stays unverified until you confirm it.",
   },
   {
     icon: Landmark,
@@ -69,7 +76,7 @@ const pillars = [
 
 const steps = [
   { icon: Search, title: "Paste the claim", body: "A headline, a WhatsApp forward, or a full article — 20 to 5,000 characters." },
-  { icon: FileCheck2, title: "Read the breakdown", body: "See a verdict, a confidence score, and the eight aspects behind it." },
+  { icon: FileCheck2, title: "Read the breakdown", body: "See the language risk, the signals behind it, and what to check next." },
   { icon: Landmark, title: "Confirm at the source", body: "Open the official portal that publishes primary information on that subject." },
 ];
 
@@ -85,9 +92,9 @@ function Landing() {
               <span className="block text-muted-foreground">Then check the source.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-              FNDVS analyses news text across eight credibility aspects, attaches a confidence
-              score, and points you to the official Indian body that publishes authoritative
-              information on that subject — so no verdict is ever a black box.
+              FNDVS checks the wording of a claim for risk signals, looks for where it should be
+              confirmed, and points you to the official Indian body that publishes authoritative
+              information on that subject — so nothing is a black box.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" asChild>
@@ -104,34 +111,30 @@ function Landing() {
           </div>
 
           <div className="surface p-6">
-            <p className="eyebrow">Sample report</p>
-            <p className="mt-3 rounded-lg bg-muted p-3 text-sm leading-relaxed">
-              “SHOCKING: Doctors hate this miracle cure they don't want you to know about — share
-              before it is deleted!!!”
-            </p>
+            <p className="eyebrow">Sample report · live engine output</p>
+            <p className="mt-3 rounded-lg bg-muted p-3 text-sm leading-relaxed">“{SAMPLE_TEXT}”</p>
             <div className="mt-5 flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 rounded-full border border-fake/30 bg-fake-soft px-4 py-2 font-display font-bold text-fake">
-                <ShieldCheck className="size-4" aria-hidden="true" /> LIKELY FAKE
+              <LabelBadge label={SAMPLE.verdict} size="lg" />
+              <span className="font-display text-3xl font-bold tabular-nums">
+                {SAMPLE.riskScore}
+                <span className="ml-1 text-sm font-medium text-muted-foreground">risk score</span>
               </span>
-              <span className="font-display text-3xl font-bold tabular-nums">94.2%</span>
             </div>
             <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-[94%] rounded-full bg-fake" />
+              <div className="h-full rounded-full bg-fake" style={{ width: `${SAMPLE.riskScore}%` }} />
             </div>
             <dl className="mt-5 space-y-2 text-sm">
-              {[
-                ["Sensational vocabulary", "Concern"],
-                ["Urgency & forwarding pressure", "Concern"],
-                ["Source attribution", "Concern"],
-                ["Factual specificity", "Caution"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between gap-3">
-                  <dt className="text-muted-foreground">{k}</dt>
-                  <dd className={v === "Concern" ? "font-semibold text-fake" : "font-semibold text-caution"}>
-                    {v}
-                  </dd>
-                </div>
-              ))}
+              {SAMPLE.aspects
+                .filter((a) => a.verdict === "fail" || a.verdict === "warn")
+                .slice(0, 4)
+                .map((a) => (
+                  <div key={a.id} className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">{a.label}</dt>
+                    <dd className={a.verdict === "fail" ? "font-semibold text-fake" : "font-semibold text-caution"}>
+                      {a.verdict === "fail" ? "Concern" : "Caution"}
+                    </dd>
+                  </div>
+                ))}
             </dl>
             <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Confirm at
