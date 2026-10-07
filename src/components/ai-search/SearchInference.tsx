@@ -138,7 +138,8 @@ export function SearchInference({
           <div>
             <dt className="font-semibold">Pruned nodes</dt>
             <dd className="text-muted-foreground">
-              A branch that reaches a set already seen by another route. Different orders, same set — so it is dropped.
+              A branch that was generated and then dropped: it reaches a set already reachable more cheaply (BFS: already
+              seen; Hill Climbing: a neighbour that was not the best next move).
             </dd>
           </div>
           <div>
