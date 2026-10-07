@@ -71,8 +71,8 @@ function InsightsPage() {
   }, [records]);
 
   const pieData = [
-    { name: "Likely fake", value: stats.fake, fill: "var(--fake)" },
-    { name: "Likely genuine", value: stats.real, fill: "var(--real)" },
+    { name: "Likely misleading", value: stats.fake, fill: "var(--fake)" },
+    { name: "Unverified", value: stats.real, fill: "var(--caution)" },
   ];
 
   return (
@@ -91,7 +91,7 @@ function InsightsPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Total checks" value={stats.total.toString()} />
-          <Stat label="Flagged likely fake" value={stats.fake.toString()} tone="fake" />
+          <Stat label="Flagged likely misleading" value={stats.fake.toString()} tone="fake" />
           <Stat label="Average risk score" value={Math.round(stats.avg).toString()} />
           <Stat label="High language risk" value={stats.low.toString()} tone="caution" />
         </div>
@@ -114,10 +114,10 @@ function InsightsPage() {
               </div>
               <div className="mt-2 flex justify-center gap-6 text-sm">
                 <span className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-fake" /> Fake · {stats.fake}
+                  <span className="size-3 rounded-full bg-fake" /> Likely misleading · {stats.fake}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-real" /> Genuine · {stats.real}
+                  <span className="size-3 rounded-full bg-caution" /> Unverified · {stats.real}
                 </span>
               </div>
             </div>
