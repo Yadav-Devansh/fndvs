@@ -20,6 +20,8 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Verification records — FNDVS" },
       {
         name: "description",

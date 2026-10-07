@@ -7,6 +7,8 @@ export const Route = createFileRoute("/sources")({
   component: SourcesPage,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Official Indian sources — FNDVS" },
       {
         name: "description",
