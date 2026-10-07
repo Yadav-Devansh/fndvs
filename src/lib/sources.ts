@@ -1,11 +1,9 @@
 /**
- * MOCK VERIFIED-SOURCE REGISTRY.
- *
- * A curated list of real Indian government / statutory bodies and their public
- * portals. The *matching* of a submission to a source is simulated locally
- * (keyword → topic → source), but every organisation, mandate and URL below is
- * genuine, so the corroboration panel points users at somewhere real to check.
+ * Official-source registry: real Indian government / statutory bodies and their
+ * public portals. Submissions are matched to sources by topic keywords only —
+ * the ranking is a count of matching keywords, nothing simulated.
  */
+import { hasPhrase, phraseIndices, upperTokens } from "./detect/tokenize";
 
 export type Topic =
   | "health"
@@ -176,54 +174,73 @@ export const OFFICIAL_SOURCES: OfficialSource[] = [
   },
 ];
 
-const TOPIC_KEYWORDS: Record<Exclude<Topic, "general">, string[]> = {
-  health: ["health", "vaccine", "vaccination", "covid", "virus", "disease", "hospital", "doctor", "doctors", "medicine", "drug", "cure", "patient", "cancer", "outbreak", "who"],
-  economy: ["gdp", "inflation", "rupee", "bank", "rbi", "economy", "tax", "gst", "budget", "unemployment", "market", "sensex", "loan", "currency", "note", "price", "prices", "salary"],
-  policy: ["ministry", "government", "policy", "scheme", "parliament", "bill", "act", "cabinet", "niti", "reform", "subsidy", "yojana"],
-  science: ["isro", "satellite", "launch", "mission", "research", "study", "scientists", "space", "chandrayaan", "experiment", "moon", "mars"],
-  weather: ["cyclone", "rain", "rainfall", "flood", "heatwave", "monsoon", "storm", "earthquake", "imd", "weather", "alert", "temperature"],
-  elections: ["election", "vote", "voting", "evm", "vvpat", "poll", "polls", "candidate", "constituency", "ballot", "voter"],
-  digital: ["aadhaar", "upi", "otp", "cyber", "hacked", "data", "app", "whatsapp", "online", "digital", "phone", "sim", "link", "internet"],
-  transport: ["train", "railway", "railways", "metro", "highway", "expressway", "toll", "flight", "airport", "licence", "license", "bus"],
+/** Phrase-level keywords. Ambiguous words (who, act, bill, data, app, market…) are avoided. */
+export const TOPIC_KEYWORDS: Record<Exclude<Topic, "general">, string[]> = {
+  health: ["health", "vaccine", "vaccination", "covid", "virus", "disease", "hospital", "doctor", "doctors", "medicine", "drug", "cure", "cures", "patient", "cancer", "outbreak", "world health organization", "icmr", "mohfw"],
+  economy: ["gdp", "inflation", "rupee", "bank", "banks", "rbi", "reserve bank", "economy", "tax", "gst", "budget", "unemployment", "stock market", "share market", "sensex", "nifty", "loan", "currency", "currency note", "currency notes", "rupee notes", "repo rate", "price", "prices", "salary", "cash transactions"],
+  policy: ["ministry", "government", "policy", "scheme", "parliament", "lok sabha", "rajya sabha", "lok sabha bill", "ordinance", "cabinet", "niti aayog", "reform", "subsidy", "yojana"],
+  science: ["isro", "satellite", "satellite launch", "rocket launch", "mission", "research", "researchers", "study", "scientists", "space", "chandrayaan", "experiment", "moon", "mars", "peer reviewed"],
+  weather: ["cyclone", "rain", "rainfall", "flood", "heatwave", "monsoon", "storm", "earthquake", "imd", "weather", "orange alert", "red alert", "temperature"],
+  elections: ["election", "elections", "election commission", "vote", "voting", "evm", "vvpat", "exit poll", "opinion poll", "polling", "candidate", "constituency", "ballot", "voter"],
+  digital: ["aadhaar", "uidai", "upi", "otp", "cyber", "hacked", "data breach", "data protection", "mobile app", "whatsapp", "online", "digital", "phone", "sim", "sim cards", "phishing", "internet", "it stocks"],
+  transport: ["train", "railway", "railways", "metro", "highway", "expressway", "toll", "flight", "airport", "licence", "license", "bus fare", "bus service"],
   agriculture: ["farmer", "farmers", "crop", "msp", "wheat", "rice", "harvest", "fertiliser", "fertilizer", "agriculture", "mandi"],
   defence: ["army", "navy", "air force", "defence", "soldier", "border", "missile", "military", "agniveer"],
 };
 
-export function detectTopics(cleanedText: string): Topic[] {
-  const found: Topic[] = [];
+export type TopicHits = Partial<Record<Topic, number>>;
+
+/** Count keyword hits per topic. "WHO" counts for health only when written in capitals. */
+export function topicHitCounts(tokens: string[], raw: string): TopicHits {
+  const hits: TopicHits = {};
   for (const [topic, words] of Object.entries(TOPIC_KEYWORDS) as [Topic, string[]][]) {
-    if (words.some((w) => new RegExp(`\\b${w}\\b`).test(cleanedText))) found.push(topic);
+    const n = words.filter((w) => hasPhrase(tokens, w)).length;
+    if (n > 0) hits[topic] = n;
   }
-  if (found.length === 0) found.push("general");
-  return found.slice(0, 3);
+  if (upperTokens(raw).has("WHO") && phraseIndices(tokens, "who").length > 0) {
+    hits.health = (hits.health ?? 0) + 1;
+  }
+  return hits;
+}
+
+const TOPIC_ORDER = Object.keys(TOPIC_KEYWORDS) as Topic[];
+
+/** Topics ordered by hit count, ties by declaration order; "general" when nothing matched. */
+export function topicsFromHits(hits: TopicHits): Topic[] {
+  const found = TOPIC_ORDER.filter((t) => (hits[t] ?? 0) > 0).sort(
+    (a, b) => (hits[b] ?? 0) - (hits[a] ?? 0) || TOPIC_ORDER.indexOf(a) - TOPIC_ORDER.indexOf(b),
+  );
+  return found.length ? found : ["general"];
 }
 
 export interface SourceMatch {
   source: OfficialSource;
   topic: Topic;
-  /** Simulated relevance of this desk to the submitted claim. */
+  /** Number of matching topic keywords in the claim (0 for the PIB fallback). */
   relevance: number;
 }
 
-/** Deterministically pick the official desks a human verifier should check. */
-export function matchSources(topics: Topic[], seed: number): SourceMatch[] {
-  const picked = new Map<string, SourceMatch>();
-  for (const topic of topics) {
-    const pool = OFFICIAL_SOURCES.filter((s) => s.topics.includes(topic));
-    pool.slice(0, 2).forEach((source, i) => {
-      if (!picked.has(source.id)) {
-        picked.set(source.id, {
-          source,
-          topic,
-          relevance: Math.min(98, 74 + ((seed >> (i + 1)) % 20) + (i === 0 ? 6 : 0)),
-        });
-      }
-    });
-  }
-  // PIB Fact Check is always worth checking for anything viral.
-  const pib = OFFICIAL_SOURCES.find((s) => s.id === "pib-factcheck")!;
-  if (!picked.has(pib.id)) {
-    picked.set(pib.id, { source: pib, topic: "general", relevance: 80 });
-  }
-  return [...picked.values()].sort((a, b) => b.relevance - a.relevance).slice(0, 5);
+/** How many sources the UI shows at most. */
+export const MAX_SOURCES_SHOWN = 5;
+
+/**
+ * All matching official desks, ranked by number of matching topic keywords,
+ * ties broken by registry order. PIB Fact Check is always included.
+ */
+export function matchSources(hits: TopicHits): SourceMatch[] {
+  const out: (SourceMatch & { order: number })[] = [];
+  OFFICIAL_SOURCES.forEach((source, order) => {
+    let relevance = 0;
+    let best: Topic = "general";
+    let bestHits = 0;
+    for (const t of source.topics) {
+      const n = hits[t] ?? 0;
+      relevance += n;
+      if (n > bestHits) { bestHits = n; best = t; }
+    }
+    if (relevance > 0 || source.id === "pib-factcheck") out.push({ source, topic: best, relevance, order });
+  });
+  return out
+    .sort((a, b) => b.relevance - a.relevance || a.order - b.order)
+    .map(({ source, topic, relevance }) => ({ source, topic, relevance }));
 }
