@@ -12,12 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiSearchRouteImport } from './routes/ai-search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DwmRouteImport } from './routes/dwm'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SubmitRouteImport } from './routes/submit'
-import { Route as DwmImportRouteImport } from './routes/dwm_.import'
 import { Route as ResultSubmissionIdRouteImport } from './routes/result.$submissionId'
 import { Route as ApiPublicAiVerifyRouteImport } from './routes/api/public/ai-verify'
 import { Route as ApiPublicPredictRouteImport } from './routes/api/public/predict'
@@ -35,11 +33,6 @@ const AiSearchRoute = AiSearchRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DwmRoute = DwmRouteImport.update({
-  id: '/dwm',
-  path: '/dwm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -62,11 +55,6 @@ const SubmitRoute = SubmitRouteImport.update({
   path: '/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DwmImportRoute = DwmImportRouteImport.update({
-  id: '/dwm_/import',
-  path: '/dwm/import',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ResultSubmissionIdRoute = ResultSubmissionIdRouteImport.update({
   id: '/result/$submissionId',
   path: '/result/$submissionId',
@@ -87,12 +75,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
-  '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
-  '/dwm/import': typeof DwmImportRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
@@ -101,12 +87,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
-  '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
-  '/dwm/import': typeof DwmImportRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
@@ -116,12 +100,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai-search': typeof AiSearchRoute
   '/dashboard': typeof DashboardRoute
-  '/dwm': typeof DwmRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/sources': typeof SourcesRoute
   '/submit': typeof SubmitRoute
-  '/dwm_/import': typeof DwmImportRoute
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
@@ -132,12 +114,10 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-search'
     | '/dashboard'
-    | '/dwm'
     | '/help'
     | '/history'
     | '/sources'
     | '/submit'
-    | '/dwm/import'
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
@@ -146,12 +126,10 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-search'
     | '/dashboard'
-    | '/dwm'
     | '/help'
     | '/history'
     | '/sources'
     | '/submit'
-    | '/dwm/import'
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
@@ -160,12 +138,10 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-search'
     | '/dashboard'
-    | '/dwm'
     | '/help'
     | '/history'
     | '/sources'
     | '/submit'
-    | '/dwm_/import'
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
@@ -175,12 +151,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiSearchRoute: typeof AiSearchRoute
   DashboardRoute: typeof DashboardRoute
-  DwmRoute: typeof DwmRoute
   HelpRoute: typeof HelpRoute
   HistoryRoute: typeof HistoryRoute
   SourcesRoute: typeof SourcesRoute
   SubmitRoute: typeof SubmitRoute
-  DwmImportRoute: typeof DwmImportRoute
   ResultSubmissionIdRoute: typeof ResultSubmissionIdRoute
   ApiPublicAiVerifyRoute: typeof ApiPublicAiVerifyRoute
   ApiPublicPredictRoute: typeof ApiPublicPredictRoute
@@ -207,13 +181,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dwm': {
-      id: '/dwm'
-      path: '/dwm'
-      fullPath: '/dwm'
-      preLoaderRoute: typeof DwmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -244,13 +211,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dwm_/import': {
-      id: '/dwm_/import'
-      path: '/dwm/import'
-      fullPath: '/dwm/import'
-      preLoaderRoute: typeof DwmImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/result/$submissionId': {
       id: '/result/$submissionId'
       path: '/result/$submissionId'
@@ -279,12 +239,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiSearchRoute: AiSearchRoute,
   DashboardRoute: DashboardRoute,
-  DwmRoute: DwmRoute,
   HelpRoute: HelpRoute,
   HistoryRoute: HistoryRoute,
   SourcesRoute: SourcesRoute,
   SubmitRoute: SubmitRoute,
-  DwmImportRoute: DwmImportRoute,
   ResultSubmissionIdRoute: ResultSubmissionIdRoute,
   ApiPublicAiVerifyRoute: ApiPublicAiVerifyRoute,
   ApiPublicPredictRoute: ApiPublicPredictRoute,

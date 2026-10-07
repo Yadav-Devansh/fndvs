@@ -1,0 +1,849 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`predict() snapshot > scores fixed headlines identically 1`] = `
+[
+  {
+    "aspects": [
+      [
+        "sensational",
+        6,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        74,
+      ],
+      [
+        "urgency",
+        45,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        86,
+      ],
+      [
+        "clickbait",
+        64,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 94.4,
+    "label": "FAKE",
+    "text": "Shocking secret cure doctors hate, share before it gets deleted!",
+    "topics": [
+      "health",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        44,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        62,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 95.7,
+    "label": "REAL",
+    "text": "The Ministry of Finance announced a revised GST rate schedule on 1 April 2024.",
+    "topics": [
+      "economy",
+      "policy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        44,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        37,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 92.7,
+    "label": "REAL",
+    "text": "RBI keeps repo rate unchanged at 6.5 percent, governor says at press conference.",
+    "topics": [
+      "economy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        76,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        74,
+      ],
+      [
+        "urgency",
+        70,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        40,
+      ],
+    ],
+    "confidence": 64.8,
+    "label": "FAKE",
+    "text": "Forward this to everyone: banks will be closed for ten days from tomorrow.",
+    "topics": [
+      "general",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        60,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        70,
+      ],
+    ],
+    "confidence": 93.1,
+    "label": "REAL",
+    "text": "According to IMD officials, heavy rainfall is expected in Kerala this week.",
+    "topics": [
+      "weather",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        14,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        64,
+      ],
+      [
+        "corroboration",
+        40,
+      ],
+    ],
+    "confidence": 96.5,
+    "label": "FAKE",
+    "text": "You won't believe what this politician secretly did overnight.",
+    "topics": [
+      "general",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        40,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 81.9,
+    "label": "REAL",
+    "text": "ISRO confirmed the successful launch of its new navigation satellite.",
+    "topics": [
+      "science",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        51,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        40,
+      ],
+    ],
+    "confidence": 81.4,
+    "label": "FAKE",
+    "text": "Big pharma does not want you to know about this miracle herb.",
+    "topics": [
+      "general",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        66,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 87.3,
+    "label": "REAL",
+    "text": "The Election Commission issued a press release on the polling schedule.",
+    "topics": [
+      "elections",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        66,
+      ],
+      [
+        "attribution",
+        36,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 57.5,
+    "label": "FAKE",
+    "text": "Viral video claims the government will give free laptops to all students.",
+    "topics": [
+      "policy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        38,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 94.5,
+    "label": "REAL",
+    "text": "Researchers published a peer-reviewed study on air pollution in Delhi.",
+    "topics": [
+      "science",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        33,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        86,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        40,
+      ],
+    ],
+    "confidence": 93.3,
+    "label": "FAKE",
+    "text": "Wake up! Mainstream media is hiding the hidden truth about vaccines.",
+    "topics": [
+      "general",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        40,
+      ],
+    ],
+    "confidence": 64.9,
+    "label": "REAL",
+    "text": "India beat Australia by five wickets in the second Test in Chennai.",
+    "topics": [
+      "general",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        51,
+      ],
+      [
+        "style",
+        95,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 63.4,
+    "label": "REAL",
+    "text": "PIB Fact Check: the claim that new 2000 rupee notes carry a GPS chip is fake news.",
+    "topics": [
+      "economy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        80,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        65,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 86.2,
+    "label": "REAL",
+    "text": "The government has quietly decided to ban all cash transactions above Rs 2000 from next month, as per the Ministry of Finance.",
+    "topics": [
+      "policy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        82,
+      ],
+      [
+        "attribution",
+        86,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        62,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 93.1,
+    "label": "REAL",
+    "text": "According to a statement by the Ministry of Health, drinking hot water every hour cures covid, officials confirmed on 3 March 2025.",
+    "topics": [
+      "health",
+      "policy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        40,
+      ],
+      [
+        "emotion",
+        74,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        96,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        86,
+      ],
+    ],
+    "confidence": 80.3,
+    "label": "REAL",
+    "text": "The whole market may decide to separate the novel database from the forward plan.",
+    "topics": [
+      "economy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        26,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        26,
+      ],
+      [
+        "style",
+        90,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 70.8,
+    "label": "REAL",
+    "text": "UIDAI advisory: never share your Aadhaar OTP with anyone over the phone.",
+    "topics": [
+      "digital",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        79,
+      ],
+      [
+        "attribution",
+        22,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        70,
+      ],
+      [
+        "specificity",
+        37,
+      ],
+      [
+        "style",
+        86,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 56.8,
+    "label": "FAKE",
+    "text": "Act now, 100% guaranteed returns from this new investment scheme!",
+    "topics": [
+      "policy",
+    ],
+  },
+  {
+    "aspects": [
+      [
+        "sensational",
+        100,
+      ],
+      [
+        "attribution",
+        26,
+      ],
+      [
+        "emotion",
+        96,
+      ],
+      [
+        "urgency",
+        95,
+      ],
+      [
+        "specificity",
+        37,
+      ],
+      [
+        "style",
+        98,
+      ],
+      [
+        "clickbait",
+        94,
+      ],
+      [
+        "corroboration",
+        48,
+      ],
+    ],
+    "confidence": 71.1,
+    "label": "REAL",
+    "text": "Sensex closes 300 points higher as IT stocks rally, data shows.",
+    "topics": [
+      "economy",
+      "digital",
+    ],
+  },
+]
+`;
