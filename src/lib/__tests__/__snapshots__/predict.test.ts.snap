@@ -6,11 +6,11 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
     "aspects": [
       [
         "sensational",
-        6,
+        5,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -18,7 +18,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "urgency",
-        45,
+        20,
       ],
       [
         "specificity",
@@ -34,15 +34,37 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 94.4,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "high",
+    "riskScore": 100,
+    "sources": [
+      [
+        "pib-factcheck",
+        2,
+      ],
+      [
+        "niti-aayog",
+        2,
+      ],
+      [
+        "mohfw",
+        2,
+      ],
+      [
+        "icmr",
+        2,
+      ],
+    ],
     "text": "Shocking secret cure doctors hate, share before it gets deleted!",
     "topics": [
       "health",
     ],
+    "verdict": "likely-misleading",
   },
   {
     "aspects": [
@@ -52,7 +74,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        44,
+        null,
       ],
       [
         "emotion",
@@ -76,16 +98,58 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 95.7,
-    "label": "REAL",
+    "attribution": [
+      "ministry of finance announced",
+    ],
+    "dates": [
+      "1 april 2024",
+    ],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        2,
+      ],
+      [
+        "niti-aayog",
+        2,
+      ],
+      [
+        "mospi",
+        2,
+      ],
+      [
+        "data-gov",
+        2,
+      ],
+      [
+        "rbi",
+        1,
+      ],
+      [
+        "meity",
+        1,
+      ],
+      [
+        "uidai",
+        1,
+      ],
+      [
+        "agricoop",
+        1,
+      ],
+    ],
     "text": "The Ministry of Finance announced a revised GST rate schedule on 1 April 2024.",
     "topics": [
       "economy",
       "policy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -95,7 +159,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        44,
+        null,
       ],
       [
         "emotion",
@@ -119,29 +183,61 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 92.7,
-    "label": "REAL",
+    "attribution": [
+      "governor says",
+    ],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        2,
+      ],
+      [
+        "niti-aayog",
+        2,
+      ],
+      [
+        "rbi",
+        2,
+      ],
+      [
+        "mospi",
+        2,
+      ],
+      [
+        "agricoop",
+        2,
+      ],
+      [
+        "data-gov",
+        2,
+      ],
+    ],
     "text": "RBI keeps repo rate unchanged at 6.5 percent, governor says at press conference.",
     "topics": [
       "economy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        76,
+        73,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
-        74,
+        96,
       ],
       [
         "urgency",
@@ -161,15 +257,45 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        40,
+        null,
       ],
     ],
-    "confidence": 64.8,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "medium",
+    "riskScore": 56,
+    "sources": [
+      [
+        "pib-factcheck",
+        1,
+      ],
+      [
+        "niti-aayog",
+        1,
+      ],
+      [
+        "rbi",
+        1,
+      ],
+      [
+        "mospi",
+        1,
+      ],
+      [
+        "agricoop",
+        1,
+      ],
+      [
+        "data-gov",
+        1,
+      ],
+    ],
     "text": "Forward this to everyone: banks will be closed for ten days from tomorrow.",
     "topics": [
-      "general",
+      "economy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -179,7 +305,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        60,
+        null,
       ],
       [
         "emotion",
@@ -203,25 +329,46 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        70,
+        null,
       ],
     ],
-    "confidence": 93.1,
-    "label": "REAL",
+    "attribution": [
+      "according to imd",
+      "according to officials",
+    ],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "imd",
+        2,
+      ],
+      [
+        "ndma",
+        2,
+      ],
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "According to IMD officials, heavy rainfall is expected in Kerala this week.",
     "topics": [
       "weather",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        14,
+        31,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -245,15 +392,25 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        40,
+        null,
       ],
     ],
-    "confidence": 96.5,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "high",
+    "riskScore": 66,
+    "sources": [
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "You won't believe what this politician secretly did overnight.",
     "topics": [
       "general",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -263,7 +420,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        40,
+        null,
       ],
       [
         "emotion",
@@ -287,25 +444,49 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 81.9,
-    "label": "REAL",
+    "attribution": [
+      "isro confirmed",
+    ],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "icmr",
+        2,
+      ],
+      [
+        "isro",
+        2,
+      ],
+      [
+        "data-gov",
+        2,
+      ],
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "ISRO confirmed the successful launch of its new navigation satellite.",
     "topics": [
       "science",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        51,
+        46,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -329,15 +510,25 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        40,
+        null,
       ],
     ],
-    "confidence": 81.4,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "medium",
+    "riskScore": 36,
+    "sources": [
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "Big pharma does not want you to know about this miracle herb.",
     "topics": [
       "general",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -347,7 +538,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        66,
+        null,
       ],
       [
         "emotion",
@@ -371,25 +562,41 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 87.3,
-    "label": "REAL",
+    "attribution": [
+      "election commission issued",
+    ],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        3,
+      ],
+      [
+        "eci",
+        3,
+      ],
+    ],
     "text": "The Election Commission issued a press release on the polling schedule.",
     "topics": [
       "elections",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        66,
+        85,
       ],
       [
         "attribution",
-        36,
+        null,
       ],
       [
         "emotion",
@@ -413,15 +620,45 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 57.5,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 10,
+    "sources": [
+      [
+        "pib-factcheck",
+        1,
+      ],
+      [
+        "niti-aayog",
+        1,
+      ],
+      [
+        "mospi",
+        1,
+      ],
+      [
+        "meity",
+        1,
+      ],
+      [
+        "uidai",
+        1,
+      ],
+      [
+        "data-gov",
+        1,
+      ],
+    ],
     "text": "Viral video claims the government will give free laptops to all students.",
     "topics": [
       "policy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -431,7 +668,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        38,
+        null,
       ],
       [
         "emotion",
@@ -455,25 +692,47 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 94.5,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "icmr",
+        3,
+      ],
+      [
+        "isro",
+        3,
+      ],
+      [
+        "data-gov",
+        3,
+      ],
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "Researchers published a peer-reviewed study on air pollution in Delhi.",
     "topics": [
       "science",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        33,
+        31,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -497,15 +756,25 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        40,
+        null,
       ],
     ],
-    "confidence": 93.3,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "medium",
+    "riskScore": 52,
+    "sources": [
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "Wake up! Mainstream media is hiding the hidden truth about vaccines.",
     "topics": [
       "general",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -515,7 +784,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -539,15 +808,25 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        40,
+        null,
       ],
     ],
-    "confidence": 64.9,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "India beat Australia by five wickets in the second Test in Chennai.",
     "topics": [
       "general",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -557,7 +836,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -581,25 +860,57 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 63.4,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [
+      "2000",
+    ],
+    "debunkFraming": true,
+    "languageRisk": "low",
+    "riskScore": 2,
+    "sources": [
+      [
+        "pib-factcheck",
+        2,
+      ],
+      [
+        "niti-aayog",
+        2,
+      ],
+      [
+        "rbi",
+        2,
+      ],
+      [
+        "mospi",
+        2,
+      ],
+      [
+        "agricoop",
+        2,
+      ],
+      [
+        "data-gov",
+        2,
+      ],
+    ],
     "text": "PIB Fact Check: the claim that new 2000 rupee notes carry a GPS chip is fake news.",
     "topics": [
       "economy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        100,
+        88,
       ],
       [
         "attribution",
-        80,
+        null,
       ],
       [
         "emotion",
@@ -611,7 +922,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "specificity",
-        65,
+        51,
       ],
       [
         "style",
@@ -623,25 +934,68 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 86.2,
-    "label": "REAL",
+    "attribution": [
+      "as per ministry of finance",
+    ],
+    "dates": [
+      "2000",
+    ],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 8,
+    "sources": [
+      [
+        "pib-factcheck",
+        3,
+      ],
+      [
+        "niti-aayog",
+        3,
+      ],
+      [
+        "mospi",
+        3,
+      ],
+      [
+        "data-gov",
+        3,
+      ],
+      [
+        "meity",
+        2,
+      ],
+      [
+        "uidai",
+        2,
+      ],
+      [
+        "rbi",
+        1,
+      ],
+      [
+        "agricoop",
+        1,
+      ],
+    ],
     "text": "The government has quietly decided to ban all cash transactions above Rs 2000 from next month, as per the Ministry of Finance.",
     "topics": [
       "policy",
+      "economy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        82,
+        85,
       ],
       [
         "attribution",
-        86,
+        null,
       ],
       [
         "emotion",
@@ -665,16 +1019,58 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 93.1,
-    "label": "REAL",
+    "attribution": [
+      "officials confirmed",
+    ],
+    "dates": [
+      "3 march 2025",
+    ],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 10,
+    "sources": [
+      [
+        "pib-factcheck",
+        4,
+      ],
+      [
+        "niti-aayog",
+        4,
+      ],
+      [
+        "mohfw",
+        3,
+      ],
+      [
+        "icmr",
+        3,
+      ],
+      [
+        "mospi",
+        1,
+      ],
+      [
+        "meity",
+        1,
+      ],
+      [
+        "uidai",
+        1,
+      ],
+      [
+        "data-gov",
+        1,
+      ],
+    ],
     "text": "According to a statement by the Ministry of Health, drinking hot water every hour cures covid, officials confirmed on 3 March 2025.",
     "topics": [
       "health",
       "policy",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -684,11 +1080,11 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        40,
+        null,
       ],
       [
         "emotion",
-        74,
+        96,
       ],
       [
         "urgency",
@@ -696,7 +1092,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "specificity",
-        96,
+        26,
       ],
       [
         "style",
@@ -708,15 +1104,25 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        86,
+        null,
       ],
     ],
-    "confidence": 80.3,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        0,
+      ],
+    ],
     "text": "The whole market may decide to separate the novel database from the forward plan.",
     "topics": [
-      "economy",
+      "general",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
@@ -726,7 +1132,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        26,
+        null,
       ],
       [
         "emotion",
@@ -750,25 +1156,51 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 70.8,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 4,
+    "sources": [
+      [
+        "pib-factcheck",
+        4,
+      ],
+      [
+        "rbi",
+        4,
+      ],
+      [
+        "meity",
+        4,
+      ],
+      [
+        "cert-in",
+        4,
+      ],
+      [
+        "uidai",
+        4,
+      ],
+    ],
     "text": "UIDAI advisory: never share your Aadhaar OTP with anyone over the phone.",
     "topics": [
       "digital",
     ],
+    "verdict": "unverified",
   },
   {
     "aspects": [
       [
         "sensational",
-        79,
+        31,
       ],
       [
         "attribution",
-        22,
+        null,
       ],
       [
         "emotion",
@@ -792,15 +1224,45 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 56.8,
-    "label": "FAKE",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "high",
+    "riskScore": 70,
+    "sources": [
+      [
+        "pib-factcheck",
+        1,
+      ],
+      [
+        "niti-aayog",
+        1,
+      ],
+      [
+        "mospi",
+        1,
+      ],
+      [
+        "meity",
+        1,
+      ],
+      [
+        "uidai",
+        1,
+      ],
+      [
+        "data-gov",
+        1,
+      ],
+    ],
     "text": "Act now, 100% guaranteed returns from this new investment scheme!",
     "topics": [
       "policy",
     ],
+    "verdict": "likely-misleading",
   },
   {
     "aspects": [
@@ -810,7 +1272,7 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "attribution",
-        26,
+        null,
       ],
       [
         "emotion",
@@ -834,16 +1296,58 @@ exports[`predict() snapshot > scores fixed headlines identically 1`] = `
       ],
       [
         "corroboration",
-        48,
+        null,
       ],
     ],
-    "confidence": 71.1,
-    "label": "REAL",
+    "attribution": [],
+    "dates": [],
+    "debunkFraming": false,
+    "languageRisk": "low",
+    "riskScore": 0,
+    "sources": [
+      [
+        "pib-factcheck",
+        2,
+      ],
+      [
+        "rbi",
+        2,
+      ],
+      [
+        "niti-aayog",
+        1,
+      ],
+      [
+        "mospi",
+        1,
+      ],
+      [
+        "meity",
+        1,
+      ],
+      [
+        "cert-in",
+        1,
+      ],
+      [
+        "uidai",
+        1,
+      ],
+      [
+        "agricoop",
+        1,
+      ],
+      [
+        "data-gov",
+        1,
+      ],
+    ],
     "text": "Sensex closes 300 points higher as IT stocks rally, data shows.",
     "topics": [
       "economy",
       "digital",
     ],
+    "verdict": "unverified",
   },
 ]
 `;

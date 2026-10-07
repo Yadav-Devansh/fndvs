@@ -31,12 +31,18 @@ describe("predict() snapshot", () => {
       const r = predict(text);
       return {
         text,
-        label: r.label,
-        confidence: r.confidenceScore,
+        verdict: r.verdict,
+        languageRisk: r.languageRisk,
+        riskScore: r.riskScore,
+        debunkFraming: r.debunkFraming,
         aspects: r.aspects.map((a) => [a.id, a.score]),
+        attribution: r.claimedAttribution,
+        dates: r.dates,
         topics: r.topics,
+        sources: r.sources.map((s) => [s.source.id, s.relevance]),
       };
     });
     expect(out).toMatchSnapshot();
+    expect(out.every((o) => o.verdict !== ("likely-credible" as string))).toBe(true);
   });
 });

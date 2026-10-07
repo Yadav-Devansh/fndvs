@@ -45,15 +45,16 @@ export function buildHeuristics(
   const dist = stepsToGoal(graph);
   const aspect = (id?: string) => result.aspects.find((a) => a.id === id);
   const topicSpecific = (result.topics[0] ?? "general") !== "general";
-  const topSourceRelevance = result.sources[0]?.relevance ?? 50;
-  const unresolved = result.aspects.filter((a) => a.score < 70).length;
+  // Keyword-match count mapped onto the 0-100 heuristic scale.
+  const topSourceRelevance = clamp(40 + (result.sources[0]?.relevance ?? 0) * 15);
+  const unresolved = result.aspects.filter((a) => a.score === null || a.score < 70).length;
   const uncertaintyPool = Math.max(1, unresolved);
 
   const out: Record<string, HeuristicBreakdown> = {};
 
   for (const state of graph.states) {
     const a = aspect(state.aspectId);
-    const concern = a ? 100 - a.score : 100 - result.confidenceScore;
+    const concern = a && a.score !== null ? 100 - a.score : result.riskScore;
 
     let topicRelevance = topicSpecific ? 82 : 58;
     let sourceRelevance = 50;
@@ -66,7 +67,7 @@ export function buildHeuristics(
         topicRelevance = 40;
         sourceRelevance = 30;
         evidenceAvailability = 30;
-        credibilityConcern = clamp(100 - result.confidenceScore);
+        credibilityConcern = clamp(result.riskScore);
         uncertaintyReduction = 35;
         break;
       case "topic":
@@ -83,7 +84,7 @@ export function buildHeuristics(
         topicRelevance = topicSpecific ? 92 : 66;
         sourceRelevance = clamp(topSourceRelevance);
         evidenceAvailability = clamp(45 + result.sources.length * 16);
-        credibilityConcern = clamp(100 - result.confidenceScore);
+        credibilityConcern = clamp(result.riskScore);
         uncertaintyReduction = 80;
         break;
       case "corroboration":

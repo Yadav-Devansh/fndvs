@@ -24,7 +24,7 @@ export const Route = createFileRoute("/history")({
       {
         name: "description",
         content:
-          "Browse, search and filter every claim checked on this device, with verdicts and confidence scores.",
+          "Browse, search and filter every claim checked on this device, with verdicts and language-risk scores.",
       },
       { property: "og:title", content: "Verification records — FNDVS" },
       { property: "og:description", content: "Your searchable local verification log." },
@@ -104,8 +104,8 @@ function HistoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All verdicts</SelectItem>
-                <SelectItem value="FAKE">Likely fake</SelectItem>
-                <SelectItem value="REAL">Likely genuine</SelectItem>
+                <SelectItem value="FAKE">Likely misleading</SelectItem>
+                <SelectItem value="UNVERIFIED">Unverified</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -138,7 +138,7 @@ function HistoryPage() {
                 <div className="flex items-center gap-3">
                   <LabelBadge label={row.result.label} />
                   <span className="font-display text-sm font-bold tabular-nums">
-                    {row.result.confidenceScore.toFixed(1)}%
+                    risk {Math.round(row.result.riskScore)}
                   </span>
                 </div>
               </div>

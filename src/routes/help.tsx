@@ -11,7 +11,7 @@ export const Route = createFileRoute("/help")({
       {
         name: "description",
         content:
-          "How FNDVS scores credibility: the eight aspects, what the confidence bands mean, and how to cross-check a claim with official Indian sources.",
+          "How FNDVS scores credibility: the linguistic risk signals, what the risk score means, and how to cross-check a claim with official Indian sources.",
       },
       { property: "og:title", content: "Help & methodology — FNDVS" },
       { property: "og:description", content: "Understand the verdict, the score and the sources." },
@@ -22,15 +22,15 @@ export const Route = createFileRoute("/help")({
 const faqs = [
   {
     q: "What does the verdict actually mean?",
-    a: "“Likely fake” means the text carries linguistic markers common to misinformation — hype vocabulary, forwarding pressure, missing attribution. “Likely genuine” means it reads like conventional sourced reporting. Neither is a statement of fact about the underlying event.",
+    a: "The rule engine reads wording only, not facts. “Likely misleading” means strong risk signals plus pressure to forward. Everything else is “Unverified” — the wording check can never call a claim credible. Naming a ministry or saying “according to” is treated as a claim to check, not as proof.",
   },
   {
-    q: "How should I read the confidence score?",
-    a: "80% and above is strong signal, 60–79% is moderate, and anything below 60% is explicitly flagged as low confidence. A low-confidence result means the text was too short, too neutral or too mixed for the engine to commit.",
+    q: "How should I read the risk score?",
+    a: "The risk score (0–100) measures how much the wording looks like a forwarded hoax. 60+ is high language risk, 25–59 medium, below 25 low. Evidence strength is at most “weak” from wording alone. Non-English text gets “unknown”.",
   },
   {
-    q: "What are the eight aspects?",
-    a: "Sensational vocabulary, source attribution, emotional tone, urgency and forwarding pressure, factual specificity, writing-style integrity, clickbait framing, and the official corroboration path. Each is scored 0–100 with the evidence shown.",
+    q: "What signals are checked?",
+    a: "Sensational vocabulary, claimed attribution, emotional tone, urgency and forwarding pressure, checkable details, writing style and clickbait framing. Corroboration shows “Not checked yet” for now. If the text is itself debunking a rumour, you are told to verify the original claim instead.",
   },
   {
     q: "Why does it show government websites?",

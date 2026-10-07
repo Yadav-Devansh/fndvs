@@ -25,7 +25,7 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "Aggregate view of your verification activity: fake-vs-genuine split, average confidence and the credibility aspects that fail most often.",
+          "Aggregate view of your verification activity: misleading-vs-unverified split, average language risk and the credibility aspects that fail most often.",
       },
       { property: "og:title", content: "Insights — FNDVS" },
       { property: "og:description", content: "Trends across every claim you have checked." },
@@ -39,12 +39,13 @@ function InsightsPage() {
   const stats = useMemo(() => {
     const total = records.length;
     const fake = records.filter((r) => r.result.label === "FAKE").length;
-    const avg = total ? records.reduce((s, r) => s + r.result.confidenceScore, 0) / total : 0;
-    const low = records.filter((r) => r.result.confidenceScore < 60).length;
+    const avg = total ? records.reduce((s, r) => s + r.result.riskScore, 0) / total : 0;
+    const low = records.filter((r) => r.result.languageRisk === "high").length;
 
     const aspectTotals = new Map<string, { sum: number; n: number }>();
     for (const r of records) {
       for (const a of r.result.aspects) {
+        if (a.score === null) continue;
         const cur = aspectTotals.get(a.label) ?? { sum: 0, n: 0 };
         aspectTotals.set(a.label, { sum: cur.sum + a.score, n: cur.n + 1 });
       }
@@ -70,8 +71,8 @@ function InsightsPage() {
   }, [records]);
 
   const pieData = [
-    { name: "Likely fake", value: stats.fake, fill: "var(--fake)" },
-    { name: "Likely genuine", value: stats.real, fill: "var(--real)" },
+    { name: "Likely misleading", value: stats.fake, fill: "var(--fake)" },
+    { name: "Unverified", value: stats.real, fill: "var(--caution)" },
   ];
 
   return (
@@ -90,9 +91,9 @@ function InsightsPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Total checks" value={stats.total.toString()} />
-          <Stat label="Flagged likely fake" value={stats.fake.toString()} tone="fake" />
-          <Stat label="Average confidence" value={`${stats.avg.toFixed(1)}%`} />
-          <Stat label="Low-confidence results" value={stats.low.toString()} tone="caution" />
+          <Stat label="Flagged likely misleading" value={stats.fake.toString()} tone="fake" />
+          <Stat label="Average risk score" value={Math.round(stats.avg).toString()} />
+          <Stat label="High language risk" value={stats.low.toString()} tone="caution" />
         </div>
 
         {stats.total > 0 && (
@@ -113,10 +114,10 @@ function InsightsPage() {
               </div>
               <div className="mt-2 flex justify-center gap-6 text-sm">
                 <span className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-fake" /> Fake · {stats.fake}
+                  <span className="size-3 rounded-full bg-fake" /> Likely misleading · {stats.fake}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-real" /> Genuine · {stats.real}
+                  <span className="size-3 rounded-full bg-caution" /> Unverified · {stats.real}
                 </span>
               </div>
             </div>

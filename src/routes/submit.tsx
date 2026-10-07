@@ -19,12 +19,12 @@ export const Route = createFileRoute("/submit")({
       {
         name: "description",
         content:
-          "Paste a headline, forwarded message or article and get an eight-point credibility analysis plus the official Indian source to cross-check it against.",
+          "Paste a headline, forwarded message or article and get a check of its wording for risk signals plus the official Indian source to cross-check it against.",
       },
       { property: "og:title", content: "Verify a claim — FNDVS" },
       {
         property: "og:description",
-        content: "Eight-point credibility analysis with official source corroboration.",
+        content: "Checks wording for risk signals and points you to official sources to confirm it.",
       },
     ],
   }),

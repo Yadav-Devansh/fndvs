@@ -4,8 +4,8 @@ import { AlertTriangle, Loader2, Sparkles, CheckCircle2, HelpCircle } from "luci
 import { AppShell, PageHeader } from "@/components/AppShell";
 import {
   LabelBadge,
-  ConfidenceMeter,
-  LowConfidenceNotice,
+  RiskMeter,
+  EngineNotices,
   Disclaimer,
   TermChips,
   AspectRow,
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/result/$submissionId")({
       {
         name: "description",
         content:
-          "Full credibility report: rule-based verdict, Gemini second opinion, eight analysed aspects and the official Indian sources to cross-check against.",
+          "Full credibility report: rule-based verdict, Gemini second opinion, linguistic risk signals and the official Indian sources to cross-check against.",
       },
       { property: "og:title", content: "Verification report — FNDVS" },
       {
@@ -101,7 +101,7 @@ function ResultPage() {
           <div className="mt-8 space-y-6">
             <FinalVerdict
               ruleLabel={result.label}
-              ruleConfidence={result.confidenceScore}
+              ruleRisk={result.riskScore}
               gemini={gemini}
             />
 
@@ -124,16 +124,20 @@ function ResultPage() {
                     </span>
                   </div>
                   <div className="mt-6">
-                    <ConfidenceMeter score={result.confidenceScore} />
+                    <RiskMeter
+                      riskScore={result.riskScore}
+                      languageRisk={result.languageRisk}
+                      evidenceStrength={result.evidenceStrength}
+                    />
                   </div>
                   <p className="mt-5 text-sm leading-relaxed">{result.summary}</p>
                   <div className="mt-5">
-                    <LowConfidenceNotice score={result.confidenceScore} />
+                    <EngineNotices notices={result.notices} />
                   </div>
                 </div>
 
                 <div className="surface p-6">
-                  <h2 className="eyebrow">What we checked — {result.aspects.length} aspects</h2>
+                  <h2 className="eyebrow">Linguistic risk signals — wording only, not facts</h2>
                   <ul className="mt-2">
                     {result.aspects.map((a) => (
                       <AspectRow key={a.id} aspect={a} />
@@ -150,11 +154,17 @@ function ResultPage() {
                   </p>
                   <div className="mt-4">
                     <SourceList matches={result.sources} />
+                    {result.sources.length > 5 && (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        {result.sources.length - 5} more matching source
+                        {result.sources.length - 5 === 1 ? "" : "s"} on the Sources page.
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="surface p-6">
-                  <h2 className="eyebrow">Key terms influencing this verdict</h2>
+                  <h2 className="eyebrow">Risk terms found in the wording</h2>
                   <div className="mt-3">
                     <TermChips terms={result.explanation} />
                   </div>
@@ -205,18 +215,19 @@ function ResultPage() {
 
 /** Maps both engines onto a shared true/false/unknown axis for the inference line. */
 function leaning(label: PredictionLabel | GeminiVerdictLabel): "true" | "false" | "unknown" {
-  if (label === "REAL" || label === "likely-true") return "true";
+  // The rule engine never leans "true"; only Gemini can.
+  if (label === "likely-true") return "true";
   if (label === "FAKE" || label === "likely-false") return "false";
   return "unknown";
 }
 
 function FinalVerdict({
   ruleLabel,
-  ruleConfidence,
+  ruleRisk,
   gemini,
 }: {
   ruleLabel: PredictionLabel;
-  ruleConfidence: number;
+  ruleRisk: number;
   gemini: GeminiVerdict | null;
 }) {
   const ruleSide = leaning(ruleLabel);
@@ -229,8 +240,8 @@ function FinalVerdict({
       : agreement
         ? ruleSide === "false"
           ? "Both engines agree: treat this as likely false"
-          : "Both engines agree: this reads as credible"
-        : "The two engines disagree — treat this as unresolved";
+          : "Not verified — agreement between two opinions is not verification"
+        : "Unverified — confirm with an official source";
 
   const tone =
     agreement === null
@@ -253,10 +264,10 @@ function FinalVerdict({
           </p>
           <div className="mt-2 flex items-center gap-3">
             <LabelBadge label={ruleLabel} />
-            <span className="text-sm text-muted-foreground">{ruleConfidence}% confidence</span>
+            <span className="text-sm text-muted-foreground">risk score {Math.round(ruleRisk)}</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Judges the wording, tone, attribution and framing of the text.
+            Reads the wording only, not the facts. It can never call a claim credible.
           </p>
         </div>
 

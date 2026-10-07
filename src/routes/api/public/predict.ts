@@ -4,10 +4,9 @@ import { predict, MIN_TEXT, MAX_TEXT } from "@/lib/predict";
 /**
  * POST /api/public/predict
  * Body: { text: string }
- * 200 -> { label, confidenceScore, explanation[] }
+ * 200 -> linguistic risk signals: { verdict, languageRisk, riskScore, ... }
  *
- * MOCK NLP service. Stands in for the Python TF-IDF / Logistic Regression
- * microservice described in the SRS. Public + read-only: it stores nothing and
+ * Reads wording only, not facts. Public + read-only: it stores nothing and
  * returns no user data.
  */
 export const Route = createFileRoute("/api/public/predict")({
