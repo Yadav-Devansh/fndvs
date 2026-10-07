@@ -12,3 +12,4 @@
 - Rule-engine scoring is pinned by a vitest snapshot in `src/lib/__tests__/predict.test.ts` — why: engine changes must be deliberate and reviewable.
 - Final verdicts come only from `decide()` in `src/lib/evidence/decide.ts` (unit-tested); wording signals and Gemini can never produce "likely-credible" on their own — why: agreement between unverified opinions is not verification.
 - Public API routes use `src/lib/api-guard.server.ts` for zod-validated bodies, size limits, per-IP rate limits and JSON errors, and never log claim text — why: the endpoints are unauthenticated.
+- The AI Search lab and /api/public/verify share the planner in `src/lib/planner/` (check sets as bitmasks, fractional-knapsack heuristic proven admissible/consistent by tests) — why: the plan shown in the lab is the plan actually executed.
