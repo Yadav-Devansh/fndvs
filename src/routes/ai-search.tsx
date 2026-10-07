@@ -126,7 +126,13 @@ function AiSearchPage() {
                 <NodeInspector problem={data.problem} result={tree} id={selected} />
               </TabsContent>
               <TabsContent value="inference">
-                <SearchInference problem={data.problem} result={tree} results={[data.bfs, data.ucs, data.astar]} />
+                <SearchInference
+                  problem={data.problem}
+                  result={tree}
+                  results={[data.bfs, data.ucs, data.astar]}
+                  greedy={data.greedy}
+                  hill={data.hill}
+                />
               </TabsContent>
             </Tabs>
 
