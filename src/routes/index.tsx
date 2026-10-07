@@ -161,7 +161,7 @@ function Landing() {
 
       <section className="border-y border-border bg-card">
         <div className="mx-auto w-full max-w-6xl px-4 py-16">
-          <h2 className="text-2xl font-bold sm:text-3xl">The eight aspects we check</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">The signals we check</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Each aspect is scored independently from 0 to 100 and reported with the evidence that
             produced it.

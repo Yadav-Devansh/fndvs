@@ -30,7 +30,7 @@ export const Route = createFileRoute("/result/$submissionId")({
       {
         name: "description",
         content:
-          "Full credibility report: rule-based verdict, Gemini second opinion, eight analysed aspects and the official Indian sources to cross-check against.",
+          "Full credibility report: rule-based verdict, Gemini second opinion, linguistic risk signals and the official Indian sources to cross-check against.",
       },
       { property: "og:title", content: "Verification report — FNDVS" },
       {
