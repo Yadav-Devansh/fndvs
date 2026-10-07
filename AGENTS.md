@@ -15,3 +15,4 @@
 - The AI Search lab and /api/public/verify share the planner in `src/lib/planner/` (check sets as bitmasks, fractional-knapsack heuristic proven admissible/consistent by tests) — why: the plan shown in the lab is the plan actually executed.
 - AI model id and gateway URL live in `src/lib/evidence/gateway.server.ts` with optional AI_MODEL / AI_GATEWAY_URL env overrides — why: one place to change or verify the model.
 - Offline evaluation lives in `eval/claims.jsonl` + `scripts/evaluate.ts` (rule engine only) — why: numbers must be reproducible without network or keys.
+- AI Search inference is a presentation-only view of the selected planner result and live comparisons; it never executes checks or changes verdicts — why: planning conclusions must remain separate from credibility assessments.
