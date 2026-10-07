@@ -19,12 +19,12 @@ function pickNodes(result: PlanResult, onPath: Set<number>): TreeNode[] {
   for (const n of result.tree) if (keep.size < MAX_SHOWN && n.parent !== null && keep.has(n.parent)) keep.add(n.id);
   // Make every kept node's ancestors visible.
   for (const id of [...keep]) {
-    for (let p = result.tree[id]!.parent; p !== null && !keep.has(p); p = result.tree[p]!.parent) keep.add(p);
+    for (let p = result.tree[id]?.parent ?? null; p !== null && !keep.has(p); p = result.tree[p]?.parent ?? null) keep.add(p);
   }
   return result.tree.filter((n) => keep.has(n.id));
 }
 
-export function SearchTree({
+export function FullSearchTree({
   problem,
   result,
   selected,
@@ -37,7 +37,7 @@ export function SearchTree({
 }) {
   const onPath = useMemo(() => {
     const s = new Set<number>();
-    for (let id: number | null = result.goalNode; id !== null; id = result.tree[id]!.parent) s.add(id);
+    for (let id: number | null = result.goalNode; id !== null; id = result.tree[id]?.parent ?? null) s.add(id);
     return s;
   }, [result]);
 
@@ -56,7 +56,7 @@ export function SearchTree({
   }, [nodes]);
 
   return (
-    <div className="surface min-w-0 p-4">
+    <div className="min-w-0 space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="eyebrow">Search tree explored by {result.name}</h2>
         <div className="flex flex-wrap gap-3 text-xs">
@@ -86,7 +86,8 @@ export function SearchTree({
             return <line key={`e${n.id}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={path ? "stroke-real" : "stroke-border"} strokeWidth={path ? 3 : 1} />;
           })}
           {nodes.map((n) => {
-            const p = layout.pos.get(n.id)!;
+            const p = layout.pos.get(n.id);
+            if (!p) return null;
             const f = n.g + n.h;
             return (
               <g key={n.id} onClick={() => onSelect(n.id)} className="cursor-pointer">
