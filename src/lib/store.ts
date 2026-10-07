@@ -7,7 +7,8 @@
  */
 
 import { predict, type PredictionResult } from "./predict";
-import type { GeminiVerdict } from "./gemini";
+import { toast } from "sonner";
+import type { FinalVerdict, VerificationReport } from "./evidence/types";
 
 export interface VerificationRecord {
   id: string;
@@ -18,8 +19,14 @@ export interface VerificationRecord {
   imageDataUrl?: string;
   /** True when the claim text came from an uploaded image. */
   fromImage?: boolean;
-  /** Cached Gemini second opinion, attached after the report is opened. */
-  geminiVerdict?: GeminiVerdict;
+  /** Evidence report from /api/public/verify (optional: older records lack it). */
+  evidence?: VerificationReport;
+  /** Final verdict from decide(), copied for list screens. */
+  verdict?: FinalVerdict;
+  /** Reserved for the verification-check planner. */
+  plan?: unknown;
+  /** Inserted by "Load sample claims"; excluded from Insights by default. */
+  sample?: boolean;
 }
 
 const KEY = "fndvs.records.v2";
@@ -35,13 +42,14 @@ const SEED_TEXTS = [
   "The India Meteorological Department issued an orange alert for coastal districts, forecasting rainfall of 115 mm over the next 24 hours.",
 ];
 
-function makeSeed(): VerificationRecord[] {
+function makeSamples(): VerificationRecord[] {
   const now = Date.now();
   return SEED_TEXTS.map((text, i) => ({
-    id: `demo-${i + 1}`,
+    id: crypto.randomUUID(),
     text,
     submittedAt: new Date(now - (i + 1) * 7.5 * 3600 * 1000).toISOString(),
     result: predict(text),
+    sample: true,
   }));
 }
 
@@ -49,11 +57,7 @@ function read(): VerificationRecord[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) {
-      const seeded = makeSeed();
-      window.localStorage.setItem(KEY, JSON.stringify(seeded));
-      return seeded;
-    }
+    if (!raw) return [];
     // Records saved by the old engine are re-scored so every screen sees one shape.
     return (JSON.parse(raw) as VerificationRecord[]).map((r) =>
       r.result && "verdict" in r.result ? r : { ...r, result: predict(r.text) },
@@ -76,8 +80,9 @@ function write(records: VerificationRecord[]) {
         KEY,
         JSON.stringify(capped.map(({ imageDataUrl: _drop, ...rest }) => rest)),
       );
+      toast.warning("Browser storage is full — screenshots were dropped from saved reports.");
     } catch {
-      /* give up silently; the in-memory report still renders */
+      toast.error("Couldn't save to this browser's storage. Clear some records on the History page.");
     }
   }
   window.dispatchEvent(new Event("fndvs:records"));
@@ -97,7 +102,7 @@ export function addRecord(
   extra?: Pick<VerificationRecord, "imageDataUrl" | "fromImage">,
 ): VerificationRecord {
   const record: VerificationRecord = {
-    id: `chk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    id: crypto.randomUUID(),
     text,
     submittedAt: new Date().toISOString(),
     result,
@@ -119,6 +124,13 @@ export function updateRecord(
   records[index] = updated;
   write(records);
   return updated;
+}
+
+/** Adds the demo claims, flagged sample: true. */
+export function loadSampleClaims() {
+  const existing = read();
+  const have = new Set(existing.filter((r) => r.sample).map((r) => r.text));
+  write([...makeSamples().filter((r) => !have.has(r.text)), ...existing]);
 }
 
 export function clearRecords() {

@@ -1,20 +1,5 @@
-/** Shared types + browser helpers for the Gemini second-opinion analysis. */
-
-export type GeminiVerdictLabel = "likely-true" | "likely-false" | "unverifiable";
-
-export interface GeminiVerdict {
-  verdict: GeminiVerdictLabel;
-  confidence: number;
-  reasoning: string;
-  signals: string[];
-  nextSteps: string[];
-}
-
-export const GEMINI_VERDICT_TEXT: Record<GeminiVerdictLabel, string> = {
-  "likely-true": "Likely true",
-  "likely-false": "Likely false",
-  unverifiable: "Cannot be verified",
-};
+/** Browser helpers for the Gemini image transcription and the evidence report. */
+import type { VerificationReport } from "./evidence/types";
 
 async function post(body: unknown) {
   const res = await fetch("/api/public/ai-verify", {
@@ -37,9 +22,18 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
   return String(data["text"] ?? "");
 }
 
-/** Asks Gemini for an independent read of the claim. */
-export async function runGeminiVerify(text: string): Promise<GeminiVerdict> {
-  return (await post({ action: "verify", text })) as unknown as GeminiVerdict;
+/** Runs every evidence check for the claim on the server. */
+export async function runVerification(text: string): Promise<VerificationReport> {
+  const res = await fetch("/api/public/verify", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(typeof data["error"] === "string" ? data["error"] : "Verification is unavailable right now.");
+  }
+  return data as unknown as VerificationReport;
 }
 
 /** Reads a picked file into a data URL the API can accept. */

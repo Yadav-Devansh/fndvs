@@ -4,10 +4,13 @@ import { MAX_SOURCES_SHOWN, type SourceMatch } from "@/lib/sources";
 
 export function LabelBadge({ label, size = "sm" }: { label: string; size?: "sm" | "lg" }) {
   const misleading = label === "FAKE" || label === "likely-misleading";
-  const Icon = misleading ? XCircle : HelpCircle;
+  const credible = label === "likely-credible";
+  const Icon = misleading ? XCircle : credible ? CheckCircle2 : HelpCircle;
   const base = misleading
     ? "bg-fake-soft text-fake border-fake/30"
-    : "bg-caution-soft text-foreground border-caution/40";
+    : credible
+      ? "bg-real-soft text-real border-real/30"
+      : "bg-caution-soft text-foreground border-caution/40";
   const dims =
     size === "lg"
       ? "gap-2 px-4 py-2 text-base font-bold tracking-wide"
@@ -15,7 +18,7 @@ export function LabelBadge({ label, size = "sm" }: { label: string; size?: "sm" 
   return (
     <span className={`inline-flex items-center rounded-full border font-display ${base} ${dims}`}>
       <Icon className={size === "lg" ? "size-5" : "size-3.5"} aria-hidden="true" />
-      {misleading ? "LIKELY MISLEADING" : "UNVERIFIED"}
+      {misleading ? "LIKELY MISLEADING" : credible ? "LIKELY CREDIBLE" : "UNVERIFIED"}
     </span>
   );
 }

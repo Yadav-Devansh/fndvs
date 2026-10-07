@@ -109,8 +109,10 @@ function SubmitPage() {
       const response = await fetch("/api/public/predict", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: trimmed, forceError }),
+        body: JSON.stringify({ text: trimmed }),
       });
+      // Development-only switch for exercising the error path; never shipped.
+      if (import.meta.env.DEV && forceError) throw new Error("simulated-failure");
       if (!response.ok) throw new Error("prediction-failed");
       const result = (await response.json()) as PredictionResult;
       const thumbnail = imageDataUrl ? await shrinkDataUrl(imageDataUrl) : undefined;
@@ -262,10 +264,11 @@ function SubmitPage() {
             </div>
           )}
 
+          {import.meta.env.DEV && (
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-muted p-4">
             <div>
               <Label htmlFor="force-error" className="text-sm">
-                Simulate analysis-service failure
+                Simulate analysis-service failure (development only)
               </Label>
               <p className="text-xs text-muted-foreground">
                 Demonstration toggle for the service-unavailable error path.
@@ -273,6 +276,7 @@ function SubmitPage() {
             </div>
             <Switch id="force-error" checked={forceError} onCheckedChange={setForceError} />
           </div>
+          )}
 
           <Button type="submit" size="lg" disabled={!lengthValid || busy} className="w-full sm:w-auto">
             {busy ? (

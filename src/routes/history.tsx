@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { listRecords, clearRecords, type VerificationRecord } from "@/lib/store";
+import { listRecords, clearRecords, loadSampleClaims, type VerificationRecord } from "@/lib/store";
 
 const PAGE_SIZE = 10;
 
@@ -109,9 +109,14 @@ function HistoryPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" onClick={() => clearRecords()}>
-            Reset demo data
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => loadSampleClaims()}>
+              Load sample claims
+            </Button>
+            <Button variant="outline" onClick={() => clearRecords()}>
+              Clear all
+            </Button>
+          </div>
         </div>
 
         <div className="mt-6 space-y-3">
@@ -136,7 +141,8 @@ function HistoryPage() {
                   {new Date(row.submittedAt).toLocaleString()}
                 </span>
                 <div className="flex items-center gap-3">
-                  <LabelBadge label={row.result.label} />
+                  <LabelBadge label={row.verdict ?? row.result.label} />
+                  {row.sample && <span className="rounded border border-border px-2 py-0.5 text-xs text-muted-foreground">Sample</span>}
                   <span className="font-display text-sm font-bold tabular-nums">
                     risk {Math.round(row.result.riskScore)}
                   </span>
