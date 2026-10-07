@@ -37,7 +37,8 @@ const SAMPLES = [
   "According to a press release from the Ministry of Railways dated 4 March 2025, the new 62 km suburban line will open for service after a safety inspection by the Commissioner of Railway Safety.",
 ];
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+// Large photos are accepted; they are shrunk in the browser before being sent.
+const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
 
 function SubmitPage() {
