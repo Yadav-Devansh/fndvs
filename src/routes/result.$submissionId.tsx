@@ -154,6 +154,18 @@ function ResultPage() {
               )}
             </div>
 
+            {report?.plan && (
+              <div className="surface p-4 text-sm">
+                <p className="font-semibold">
+                  Plan used: {report.plan.executed.length} of {report.plan.checksTotal} checks, cost {report.plan.totalCost} vs{" "}
+                  {report.plan.costIfAll} for running everything.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Ran: {report.plan.executed.join(", ") || "none"}. Chosen by the A* planner to reach enough evidence at the lowest cost.
+                </p>
+              </div>
+            )}
+
             {/* 2. Evidence */}
             {report && <EvidenceList report={report} />}
 

@@ -89,4 +89,27 @@ export interface VerificationReport {
   news: NewsLookup;
   gemini: GeminiLookup;
   officialSources: { id: string; name: string; url: string }[];
+  /** Optional so reports saved before the planner still load. */
+  plan?: PlanSummary;
+}
+
+export interface PlanCheck {
+  id: string;
+  label: string;
+  cost: number;
+  gain: number;
+  estimated: boolean;
+  status: "run" | "skipped-by-plan" | "stopped-early";
+}
+
+export interface PlanSummary {
+  /** Checks A* chose, in run order. */
+  plan: PlanCheck[];
+  executed: string[];
+  skipped: string[];
+  totalCost: number;
+  costIfAll: number;
+  checksTotal: number;
+  threshold: number;
+  evidence: number;
 }

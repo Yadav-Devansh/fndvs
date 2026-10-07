@@ -58,20 +58,20 @@ const guides = [
       "Gemini reads only the evidence that was found and must cite it. It can raise or lower confidence but can never make a claim credible by itself.",
       "Wording signals (tone, urgency, forward-chains) are shown separately as language risk — they describe how a claim is written, not whether it is true.",
     ],
-    demo: "Demonstration tip: keep one screenshot of a sensational forward ready. Extract it live, run the check, then run Gemini — a disagreement between the two engines is the strongest talking point you can show.",
+    demo: "Demonstration tip: keep one screenshot of a sensational forward ready. Extract it live, run the check, and show how the verdict cites the fact-check or coverage it relied on.",
   },
   {
     title: "AI Search lab — how to use it",
     intro:
-      "The AI Search page answers one question: for this claim, in what order should we do the verification checks? It compares an uninformed search (BFS) with an informed one (A*). It never decides whether a claim is true.",
+      "Checks cost time and API credits. For a claim, the lab searches 2048 possible sets of checks for the cheapest one that gathers enough evidence. It decides how to check, never whether the claim is true.",
     steps: [
-      "Paste a claim (or load a saved record) and press “Run search”. The FNDVS scores become the action costs and heuristic values of the state space.",
-      "Read the two cards: BFS versus A*. Compare states explored, plan length, total effort and runtime — the sentence below them states exactly what the heuristic saved.",
-      "Switch the graph between BFS and A* to see the two plans highlighted on the same state space. Click any box for the node inspector (exact move, cost, parents and children).",
-      "Press “Animate the plan” and read the numbered plan underneath — it is the human-readable order of verification work.",
-      "Only if asked: open Advanced settings for the other two algorithms, search limits, heuristic weights, the step-by-step trace with g(n)/h(n)/f(n), and the four-algorithm table.",
+      "Type a claim or press a sample button. The real wording scores become the evidence gain of each local check; fact-check, news and Gemini gains are labelled estimates.",
+      "Read the three cards: BFS (fewest checks), Uniform-Cost (cheapest, no hints) and A* (cheapest, guided by a heuristic). The sentence underneath compares their real numbers.",
+      "The A* plan lists the checks in run order with cost, gain and cost/gain — the lowest ratio runs first so verification can stop early.",
+      "Switch the tree between BFS, UCS and A*. Each dot is a set of checks; hover for g, h and f, click for details. The chosen plan is outlined.",
+      "Advanced holds the τ slider, per-check costs, Greedy, Hill Climbing (which can stop at a local maximum) and the step trace.",
     ],
-    demo: "Demonstration script (about two minutes): run the sample claim, point at the two cards and say “both find the goal, A* looks at fewer states”, switch the graph BFS → A* to show the different routes, animate the A* plan, then open Advanced and lower max depth to 3 to show the limits and Hill Climbing stopping at a local maximum.",
+    demo: "Demonstration script (about two minutes): run “Shouty forward”, point out that A* matches UCS's cost while expanding far fewer states, then switch to “Calm policy claim” to show the plan change. Open How it works and explain why the fractional-knapsack heuristic never overestimates.",
   },
 
 ];
