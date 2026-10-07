@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:py-12">
+      <div className="academic-blueprint mx-auto w-full max-w-5xl px-4 py-10 sm:py-12">
         <header className="text-center">
           <ShieldCheck className="mx-auto size-9 text-chart-5" aria-hidden="true" />
           <p className="eyebrow mt-4">Independent academic project</p>

@@ -63,7 +63,7 @@ function AiSearchPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-10">
+      <div className="academic-blueprint mx-auto w-full max-w-5xl space-y-5 px-4 py-8">
         <header className="text-center">
           <p className="eyebrow">FNDVS · AI Search lab</p>
           <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Plan the cheapest checks</h1>
