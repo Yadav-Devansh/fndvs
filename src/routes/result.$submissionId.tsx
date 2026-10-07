@@ -1,26 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, Loader2, Sparkles, CheckCircle2, HelpCircle } from "lucide-react";
+import { AlertTriangle, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import {
   LabelBadge,
   RiskMeter,
   EngineNotices,
   Disclaimer,
-  TermChips,
   AspectRow,
   SourceList,
 } from "@/components/PredictionUI";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRecord, updateRecord, type VerificationRecord } from "@/lib/store";
-import {
-  runGeminiVerify,
-  GEMINI_VERDICT_TEXT,
-  type GeminiVerdict,
-  type GeminiVerdictLabel,
-} from "@/lib/gemini";
-import type { PredictionLabel } from "@/lib/predict";
+import { runVerification } from "@/lib/gemini";
+import type { LanguageRisk } from "@/lib/predict";
+import type { LookupStatus, VerificationReport } from "@/lib/evidence/types";
 
 export const Route = createFileRoute("/result/$submissionId")({
   component: ResultPage,
@@ -30,12 +24,12 @@ export const Route = createFileRoute("/result/$submissionId")({
       {
         name: "description",
         content:
-          "Full credibility report: rule-based verdict, Gemini second opinion, linguistic risk signals and the official Indian sources to cross-check against.",
+          "Evidence-based verdict: published fact-checks, reputable news coverage, an evidence-only AI read and the official Indian desks to confirm with.",
       },
       { property: "og:title", content: "Verification report — FNDVS" },
       {
         property: "og:description",
-        content: "Explainable credibility verdict plus an independent AI second opinion.",
+        content: "A verdict built from published fact-checks and news coverage, not opinion.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -43,43 +37,56 @@ export const Route = createFileRoute("/result/$submissionId")({
   }),
 });
 
+const CONF_TEXT = { high: "High confidence", medium: "Medium confidence", low: "Low confidence" } as const;
+const BUCKET_TEXT = {
+  false: "Rated false",
+  misleading: "Rated misleading",
+  true: "Rated true",
+  mixed: "Rated partly true",
+  unknown: "Rating not recognised",
+} as const;
+const GEMINI_TEXT = {
+  supported: "Evidence supports the claim",
+  contradicted: "Evidence contradicts the claim",
+  unverifiable: "Evidence does not settle it",
+} as const;
+
 function ResultPage() {
   const { submissionId } = Route.useParams();
   const [record, setRecord] = useState<VerificationRecord | null | undefined>(undefined);
-  const [gemini, setGemini] = useState<GeminiVerdict | null>(null);
-  const [geminiBusy, setGeminiBusy] = useState(false);
-  const [geminiError, setGeminiError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const check = useCallback(async (r: VerificationRecord) => {
+    setError(null);
+    setBusy(true);
+    try {
+      const evidence = await runVerification(r.text);
+      const updated = updateRecord(r.id, { evidence, verdict: evidence.decision.verdict });
+      setRecord(updated ?? { ...r, evidence, verdict: evidence.decision.verdict });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Verification failed — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   useEffect(() => {
     const found = getRecord(submissionId) ?? null;
     setRecord(found);
-    setGemini(found?.geminiVerdict ?? null);
-  }, [submissionId]);
+    if (found && !found.evidence) void check(found);
+  }, [submissionId, check]);
 
   const result = record?.result;
-
-  const onRunGemini = async () => {
-    if (!record) return;
-    setGeminiError(null);
-    setGeminiBusy(true);
-    try {
-      const verdict = await runGeminiVerify(record.text);
-      setGemini(verdict);
-      updateRecord(record.id, { geminiVerdict: verdict });
-    } catch (e) {
-      setGeminiError(e instanceof Error ? e.message : "Gemini analysis failed — please try again.");
-    } finally {
-      setGeminiBusy(false);
-    }
-  };
+  const report = record?.evidence;
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-10">
         <PageHeader
           eyebrow="Verification report"
-          title="Credibility assessment"
-          description="Two independent reads of the same claim: the rule-based language analysis, and a Gemini AI second opinion. Every signal is shown in full."
+          title="Is this claim verified?"
+          description="The verdict comes from published fact-checks and reputable news coverage. Wording signals and the AI read can't make a claim credible on their own."
         />
 
         {record === undefined && <p className="mt-8 text-sm text-muted-foreground">Loading report…</p>}
@@ -88,110 +95,104 @@ function ResultPage() {
           <div className="surface mt-8 p-6">
             <h2 className="text-lg font-semibold">Report unavailable</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              This report isn't stored in this browser. Reports are kept locally on the device that
-              ran the check.
+              This report isn't stored in this browser. Reports live only on the device that created them.
             </p>
             <Button className="mt-4" asChild>
-              <Link to="/submit">Run a new check</Link>
+              <Link to="/submit">Verify a claim</Link>
             </Button>
           </div>
         )}
 
         {record && result && (
           <div className="mt-8 space-y-6">
-            <FinalVerdict
-              ruleLabel={result.label}
-              ruleRisk={result.riskScore}
-              gemini={gemini}
-            />
-
-            <Tabs defaultValue="rules">
-              <TabsList className="w-full">
-                <TabsTrigger value="rules" className="flex-1">
-                  Rule-based analysis
-                </TabsTrigger>
-                <TabsTrigger value="gemini" className="flex-1">
-                  Gemini analysis
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="rules" className="mt-4 space-y-6">
-                <div className="surface p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <LabelBadge label={result.label} size="lg" />
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(record.submittedAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="mt-6">
-                    <RiskMeter
-                      riskScore={result.riskScore}
-                      languageRisk={result.languageRisk}
-                      evidenceStrength={result.evidenceStrength}
-                    />
-                  </div>
-                  <p className="mt-5 text-sm leading-relaxed">{result.summary}</p>
-                  <div className="mt-5">
-                    <EngineNotices notices={result.notices} />
-                  </div>
+            {/* 1. Final verdict */}
+            <div className="surface p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <h2 className="eyebrow">Final verdict</h2>
+                <Button variant="outline" size="sm" onClick={() => void check(record)} disabled={busy}>
+                  {busy ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <RefreshCw className="mr-2 size-4" aria-hidden="true" />
+                  )}
+                  {busy ? "Checking sources…" : "Check again"}
+                </Button>
+              </div>
+              {busy && !report && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Looking up published fact-checks and news coverage…
+                </p>
+              )}
+              {error && (
+                <div role="alert" className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/40 bg-fake-soft p-4 text-sm font-medium text-destructive">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                  <span>{error}</span>
                 </div>
-
-                <div className="surface p-6">
-                  <h2 className="eyebrow">Linguistic risk signals — wording only, not facts</h2>
-                  <ul className="mt-2">
-                    {result.aspects.map((a) => (
-                      <AspectRow key={a.id} aspect={a} />
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="surface p-6">
-                  <h2 className="eyebrow">Where to confirm this — official Indian sources</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Detected subject area:{" "}
-                    <span className="font-medium text-foreground">{result.topics.join(", ")}</span>.
-                    These are the authoritative desks that publish on it.
+              )}
+              {report && (
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <LabelBadge label={report.decision.verdict} size="lg" />
+                    <span className="text-sm text-muted-foreground">{CONF_TEXT[report.decision.confidence]}</span>
+                  </div>
+                  <p className="text-lg font-semibold leading-snug">{report.decision.headline}</p>
+                  {report.decision.reasons.length > 0 && (
+                    <ul className="list-disc space-y-1 pl-5 text-sm">
+                      {report.decision.reasons.map((r) => <li key={r}>{r}</li>)}
+                    </ul>
+                  )}
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What to check next</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                      {report.decision.nextSteps.map((s) => <li key={s}>{s}</li>)}
+                    </ul>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Checked {new Date(report.checkedAt).toLocaleString()}
                   </p>
-                  <div className="mt-4">
-                    <SourceList matches={result.sources} />
-                    {result.sources.length > 5 && (
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        {result.sources.length - 5} more matching source
-                        {result.sources.length - 5 === 1 ? "" : "s"} on the Sources page.
-                      </p>
-                    )}
-                  </div>
                 </div>
+              )}
+            </div>
 
-                <div className="surface p-6">
-                  <h2 className="eyebrow">Risk terms found in the wording</h2>
-                  <div className="mt-3">
-                    <TermChips terms={result.explanation} />
-                  </div>
-                </div>
-              </TabsContent>
+            {/* 2. Evidence */}
+            {report && <EvidenceList report={report} />}
 
-              <TabsContent value="gemini" className="mt-4">
-                <GeminiPanel
-                  verdict={gemini}
-                  busy={geminiBusy}
-                  error={geminiError}
-                  onRun={onRunGemini}
-                />
-              </TabsContent>
-            </Tabs>
+            {/* 3. Language risk */}
+            <div className="flex flex-wrap items-center gap-3">
+              <LanguageChip risk={result.languageRisk} />
+              <span className="text-xs text-muted-foreground">Reads wording only, not facts.</span>
+            </div>
+
+            {/* 4. Official desks */}
+            <div className="surface p-6">
+              <h2 className="eyebrow">Official desks to check</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Subject area: <span className="font-medium text-foreground">{result.topics.join(", ")}</span>.
+              </p>
+              <div className="mt-4">
+                <SourceList matches={result.sources} />
+              </div>
+            </div>
+
+            <details className="surface p-6">
+              <summary className="cursor-pointer text-sm font-semibold">
+                Wording signals in detail (linguistic risk, not facts)
+              </summary>
+              <div className="mt-4 space-y-4">
+                <RiskMeter riskScore={result.riskScore} languageRisk={result.languageRisk} evidenceStrength={result.evidenceStrength} />
+                <EngineNotices notices={result.notices} />
+                <ul>
+                  {result.aspects.map((a) => <AspectRow key={a.id} aspect={a} />)}
+                </ul>
+              </div>
+            </details>
 
             <div className="surface p-6">
               <h2 className="eyebrow">
-                Submitted text · {result.readingLevelWords} words
-                {record.fromImage ? " · read from an image" : ""}
+                Submitted text{record.fromImage ? " · read from an image" : ""}
               </h2>
               {record.imageDataUrl && (
-                <img
-                  src={record.imageDataUrl}
-                  alt="Screenshot submitted with this claim"
-                  className="mt-3 max-h-72 w-auto rounded-md border border-border object-contain"
-                />
+                <img src={record.imageDataUrl} alt="Screenshot submitted with this claim" className="mt-3 max-h-72 w-auto rounded-md border border-border object-contain" />
               )}
               <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">{record.text}</p>
             </div>
@@ -213,207 +214,96 @@ function ResultPage() {
   );
 }
 
-/** Maps both engines onto a shared true/false/unknown axis for the inference line. */
-function leaning(label: PredictionLabel | GeminiVerdictLabel): "true" | "false" | "unknown" {
-  // The rule engine never leans "true"; only Gemini can.
-  if (label === "likely-true") return "true";
-  if (label === "FAKE" || label === "likely-false") return "false";
-  return "unknown";
-}
-
-function FinalVerdict({
-  ruleLabel,
-  ruleRisk,
-  gemini,
-}: {
-  ruleLabel: PredictionLabel;
-  ruleRisk: number;
-  gemini: GeminiVerdict | null;
-}) {
-  const ruleSide = leaning(ruleLabel);
-  const aiSide = gemini ? leaning(gemini.verdict) : null;
-
-  const agreement = aiSide === null ? null : aiSide === ruleSide && ruleSide !== "unknown";
-  const combined =
-    agreement === null
-      ? "Run the Gemini analysis for a second opinion"
-      : agreement
-        ? ruleSide === "false"
-          ? "Both engines agree: treat this as likely false"
-          : "Not verified — agreement between two opinions is not verification"
-        : "Unverified — confirm with an official source";
-
+function LanguageChip({ risk }: { risk: LanguageRisk }) {
   const tone =
-    agreement === null
-      ? "border-border"
-      : agreement
-        ? ruleSide === "false"
-          ? "border-fake/50 bg-fake-soft"
-          : "border-real/50 bg-real-soft"
-        : "border-border bg-muted";
-
+    risk === "high" ? "border-fake/40 bg-fake-soft" : risk === "medium" ? "border-caution/40 bg-caution-soft" : "border-border bg-muted";
   return (
-    <div className={`surface border p-6 ${tone}`}>
-      <h2 className="eyebrow">Final inference</h2>
-      <p className="mt-2 text-xl font-semibold leading-snug">{combined}</p>
-
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-border bg-background p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            As per the rule-based analysis
-          </p>
-          <div className="mt-2 flex items-center gap-3">
-            <LabelBadge label={ruleLabel} />
-            <span className="text-sm text-muted-foreground">risk score {Math.round(ruleRisk)}</span>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Reads the wording only, not the facts. It can never call a claim credible.
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-border bg-background p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            As per Gemini
-          </p>
-          {gemini ? (
-            <>
-              <div className="mt-2 flex items-center gap-3">
-                <span className="text-base font-semibold">
-                  {GEMINI_VERDICT_TEXT[gemini.verdict]}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {gemini.confidence}% confidence
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Reasons about the substance and plausibility of the claim itself.
-              </p>
-            </>
-          ) : (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Not run yet — open the Gemini analysis tab below.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <p className="mt-4 text-xs text-muted-foreground">
-        The two can differ by design: one reads how the claim is written, the other reasons about what
-        it says. Gemini has no live internet access here, so when they disagree, confirm the claim with
-        the official sources listed in the rule-based tab.
-      </p>
-    </div>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${tone}`}>
+      <AlertTriangle className="size-3.5" aria-hidden="true" />
+      Language risk: {risk}
+    </span>
   );
 }
 
-function GeminiPanel({
-  verdict,
-  busy,
-  error,
-  onRun,
-}: {
-  verdict: GeminiVerdict | null;
-  busy: boolean;
-  error: string | null;
-  onRun: () => void;
-}) {
+function StatusNote({ status, message }: { status: LookupStatus; message?: string }) {
+  if (status === "ok") return null;
+  return <p className="mt-2 text-sm text-muted-foreground">{message ?? "Not available."}</p>;
+}
+
+function EvidenceList({ report }: { report: VerificationReport }) {
+  const { factCheck, news, gemini } = report;
+  const relevantNews = news.articles.filter((a) => a.matchRatio >= 0.6);
+  const nothing = factCheck.records.length === 0 && news.corroboratingDomains.length === 0;
+
   return (
-    <div className="space-y-6">
-      <div className="surface p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="eyebrow">Gemini second opinion</h2>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              An independent AI read of the same claim — its own verdict, the red flags or supporting
-              signals it found, and what to check next. Reasoning-based, not a live fact-check.
-            </p>
-          </div>
-          <Button onClick={onRun} disabled={busy}>
-            {busy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Analysing…
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 size-4" aria-hidden="true" />
-                {verdict ? "Run again" : "Run Gemini analysis"}
-              </>
-            )}
-          </Button>
-        </div>
+    <div className="surface space-y-6 p-6">
+      <h2 className="eyebrow">Evidence</h2>
+      {nothing && (
+        <p className="rounded-lg border border-border bg-muted p-4 text-sm font-medium">
+          Unverified — nothing in our sources settles this. Check the official desks below before sharing.
+        </p>
+      )}
 
-        {error && (
-          <div
-            role="alert"
-            className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/40 bg-fake-soft p-4 text-sm font-medium text-destructive"
-          >
-            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            <span>{error}</span>
-          </div>
+      <section>
+        <h3 className="text-sm font-semibold">Published fact-checks</h3>
+        <StatusNote status={factCheck.status} message={factCheck.message} />
+        {factCheck.status === "ok" && factCheck.records.length === 0 && (
+          <p className="mt-2 text-sm text-muted-foreground">No published fact-check matched this claim.</p>
         )}
-
-        {verdict && (
-          <div className="mt-6 space-y-5">
-            <div className="flex flex-wrap items-center gap-4">
-              <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
-                  verdict.verdict === "likely-false"
-                    ? "bg-fake text-fake-foreground"
-                    : verdict.verdict === "likely-true"
-                      ? "bg-real text-real-foreground"
-                      : "bg-muted text-foreground"
-                }`}
-              >
-                {verdict.verdict === "unverifiable" ? (
-                  <HelpCircle className="size-4" aria-hidden="true" />
-                ) : (
-                  <CheckCircle2 className="size-4" aria-hidden="true" />
-                )}
-                {GEMINI_VERDICT_TEXT[verdict.verdict]}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {verdict.confidence}% confidence
-              </span>
-            </div>
-
-            <p className="text-sm leading-relaxed">{verdict.reasoning}</p>
-
-            {verdict.signals.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold">What Gemini noticed</h3>
-                <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-                  {verdict.signals.map((s, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span aria-hidden="true">•</span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ul>
+        <ul className="mt-2 space-y-3">
+          {factCheck.records.map((f) => (
+            <li key={f.id} className="rounded-lg border border-border bg-background p-4 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{f.id}</span>
+                <span className="font-semibold">{f.publisher}</span>
+                <span>· {BUCKET_TEXT[f.ratingBucket]}: “{f.rating}”</span>
               </div>
-            )}
+              <p className="mt-1 text-muted-foreground">{f.title || f.claimText}</p>
+              <a href={f.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 font-medium text-primary underline">
+                Read the review <ExternalLink className="size-3.5" aria-hidden="true" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-            {verdict.nextSteps.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold">What you should check next</h3>
-                <ol className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-                  {verdict.nextSteps.map((s, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="font-medium text-foreground">{i + 1}.</span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!verdict && !busy && !error && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Nothing run yet. The rule-based report on the other tab is already complete.
+      <section>
+        <h3 className="text-sm font-semibold">News coverage (last {news.windowDays} days)</h3>
+        <StatusNote status={news.status} message={news.message} />
+        {news.status === "ok" && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {news.corroborated
+              ? `Corroborated by ${news.corroboratingDomains.length} reputable outlets.`
+              : `${news.corroboratingDomains.length} reputable outlet${news.corroboratingDomains.length === 1 ? "" : "s"} matched — at least 2 are needed.`}{" "}
+            Searched for: {news.keyTerms.join(", ")}.
           </p>
         )}
-      </div>
+        <ul className="mt-2 space-y-2">
+          {relevantNews.map((a) => (
+            <li key={a.id} className="text-sm">
+              <span className="mr-2 rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{a.id}</span>
+              <a href={a.url} target="_blank" rel="noreferrer" className="font-medium underline">{a.title}</a>{" "}
+              <span className="text-muted-foreground">
+                — {a.domain}{a.reputable ? " (reputable)" : " (not on allow-list)"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h3 className="text-sm font-semibold">AI read of the evidence (Gemini, evidence-only)</h3>
+        <StatusNote status={gemini.status} message={gemini.message} />
+        {gemini.result && (
+          <div className="mt-2 text-sm">
+            <p className="font-semibold">{GEMINI_TEXT[gemini.result.verdict]} · {gemini.result.confidence}/100</p>
+            <p className="mt-1">{gemini.result.reasoning}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cited: {gemini.result.citedEvidenceIds.join(", ") || "nothing"}. It can only adjust confidence, never make a claim credible on its own.
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

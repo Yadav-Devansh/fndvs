@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Bar,
@@ -34,7 +36,12 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function InsightsPage() {
-  const records = useRecords();
+  const allRecords = useRecords();
+  const [includeSamples, setIncludeSamples] = useState(false);
+  const records = useMemo(
+    () => (includeSamples ? allRecords : allRecords.filter((r) => !r.sample)),
+    [allRecords, includeSamples],
+  );
 
   const stats = useMemo(() => {
     const total = records.length;
@@ -89,7 +96,14 @@ function InsightsPage() {
           }
         />
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 flex items-center gap-3">
+          <Switch id="include-samples" checked={includeSamples} onCheckedChange={setIncludeSamples} />
+          <Label htmlFor="include-samples" className="text-sm">
+            Include sample claims
+          </Label>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Total checks" value={stats.total.toString()} />
           <Stat label="Flagged likely misleading" value={stats.fake.toString()} tone="fake" />
           <Stat label="Average risk score" value={Math.round(stats.avg).toString()} />

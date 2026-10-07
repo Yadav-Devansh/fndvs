@@ -19,6 +19,7 @@ import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as ResultSubmissionIdRouteImport } from './routes/result.$submissionId'
 import { Route as ApiPublicAiVerifyRouteImport } from './routes/api/public/ai-verify'
 import { Route as ApiPublicPredictRouteImport } from './routes/api/public/predict'
+import { Route as ApiPublicVerifyRouteImport } from './routes/api/public/verify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const ApiPublicPredictRoute = ApiPublicPredictRouteImport.update({
   path: '/api/public/predict',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVerifyRoute = ApiPublicVerifyRouteImport.update({
+  id: '/api/public/verify',
+  path: '/api/public/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
+  '/api/public/verify': typeof ApiPublicVerifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
+  '/api/public/verify': typeof ApiPublicVerifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/result/$submissionId': typeof ResultSubmissionIdRoute
   '/api/public/ai-verify': typeof ApiPublicAiVerifyRoute
   '/api/public/predict': typeof ApiPublicPredictRoute
+  '/api/public/verify': typeof ApiPublicVerifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
+    | '/api/public/verify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
+    | '/api/public/verify'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/result/$submissionId'
     | '/api/public/ai-verify'
     | '/api/public/predict'
+    | '/api/public/verify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   ResultSubmissionIdRoute: typeof ResultSubmissionIdRoute
   ApiPublicAiVerifyRoute: typeof ApiPublicAiVerifyRoute
   ApiPublicPredictRoute: typeof ApiPublicPredictRoute
+  ApiPublicVerifyRoute: typeof ApiPublicVerifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPredictRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/verify': {
+      id: '/api/public/verify'
+      path: '/api/public/verify'
+      fullPath: '/api/public/verify'
+      preLoaderRoute: typeof ApiPublicVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResultSubmissionIdRoute: ResultSubmissionIdRoute,
   ApiPublicAiVerifyRoute: ApiPublicAiVerifyRoute,
   ApiPublicPredictRoute: ApiPublicPredictRoute,
+  ApiPublicVerifyRoute: ApiPublicVerifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
