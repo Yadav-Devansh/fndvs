@@ -225,7 +225,7 @@ function LanguageChip({ risk }: { risk: LanguageRisk }) {
   );
 }
 
-function StatusNote({ status, message }: { status: LookupStatus; message?: string }) {
+function StatusNote({ status, message }: { status: LookupStatus; message?: string | undefined }) {
   if (status === "ok") return null;
   return <p className="mt-2 text-sm text-muted-foreground">{message ?? "Not available."}</p>;
 }

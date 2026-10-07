@@ -6,7 +6,7 @@ import { parseGrounded } from "../evidence/grounded";
 import { corroboratingDomains, keyTermsFor, windowDaysFor } from "../evidence/news";
 import type { FactCheckRecord, NewsArticle } from "../evidence/types";
 
-const fc = (bucket: FactCheckRecord["ratingBucket"], rating = bucket): FactCheckRecord => ({
+const fc = (bucket: FactCheckRecord["ratingBucket"], rating: string = bucket): FactCheckRecord => ({
   id: "F1", publisher: "PIB Fact Check", url: "https://x", title: "t", rating, ratingBucket: bucket, reviewedAt: null, claimText: "c",
 });
 const CASH = "The government has quietly decided to ban all cash transactions above Rs 2000 from next month, as per the Ministry of Finance.";
