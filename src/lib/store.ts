@@ -21,6 +21,8 @@ export interface VerificationRecord {
   fromImage?: boolean;
   /** Evidence report from /api/public/verify (optional: older records lack it). */
   evidence?: VerificationReport;
+  /** Gemini's independent opinion — display only, never used for the verdict. */
+  geminiOpinion?: import("./gemini").GeminiOpinion;
   /** Final verdict from decide(), copied for list screens. */
   verdict?: FinalVerdict;
   /** Reserved for the verification-check planner. */

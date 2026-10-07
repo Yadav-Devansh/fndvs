@@ -12,7 +12,7 @@ import {
 } from "@/components/PredictionUI";
 import { Button } from "@/components/ui/button";
 import { getRecord, updateRecord, type VerificationRecord } from "@/lib/store";
-import { runVerification } from "@/lib/gemini";
+import { runVerification, runGeminiOpinion, type GeminiOpinion } from "@/lib/gemini";
 import type { LanguageRisk } from "@/lib/predict";
 import type { LookupStatus, VerificationReport } from "@/lib/evidence/types";
 
@@ -56,6 +56,21 @@ function ResultPage() {
   const [record, setRecord] = useState<VerificationRecord | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [opinionBusy, setOpinionBusy] = useState(false);
+  const [opinionError, setOpinionError] = useState<string | null>(null);
+
+  const askGemini = useCallback(async (r: VerificationRecord) => {
+    setOpinionError(null);
+    setOpinionBusy(true);
+    try {
+      const geminiOpinion = await runGeminiOpinion(r.text);
+      setRecord(updateRecord(r.id, { geminiOpinion }) ?? { ...r, geminiOpinion });
+    } catch (e) {
+      setOpinionError(e instanceof Error ? e.message : "Gemini is unavailable right now.");
+    } finally {
+      setOpinionBusy(false);
+    }
+  }, []);
 
   const check = useCallback(async (r: VerificationRecord) => {
     setError(null);
@@ -63,7 +78,7 @@ function ResultPage() {
     try {
       const evidence = await runVerification(r.text);
       const updated = updateRecord(r.id, { evidence, verdict: evidence.decision.verdict });
-      setRecord(updated ?? { ...r, evidence, verdict: evidence.decision.verdict });
+      setRecord((prev) => ({ ...(updated ?? { ...r, evidence, verdict: evidence.decision.verdict }), ...(prev?.geminiOpinion ? { geminiOpinion: prev.geminiOpinion } : {}) }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Verification failed — please try again.");
     } finally {
@@ -75,7 +90,8 @@ function ResultPage() {
     const found = getRecord(submissionId) ?? null;
     setRecord(found);
     if (found && !found.evidence) void check(found);
-  }, [submissionId, check]);
+    if (found && !found.geminiOpinion) void askGemini(found);
+  }, [submissionId, check, askGemini]);
 
   const result = record?.result;
   const report = record?.evidence;
@@ -149,6 +165,9 @@ function ResultPage() {
                 </div>
               )}
             </div>
+
+            {/* Final inference: both sides */}
+            <FinalInference report={report ?? null} opinion={record.geminiOpinion} busy={opinionBusy} error={opinionError} onRetry={() => void askGemini(record)} />
 
             {report?.plan && (
               <div className="surface p-4 text-sm">
@@ -363,6 +382,73 @@ function EvidenceList({ report }: { report: VerificationReport }) {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+const OPINION_TEXT = {
+  "likely-false": "Likely false",
+  "likely-true": "Likely true",
+  uncertain: "Uncertain",
+} as const;
+
+const ALGO_TEXT = {
+  "likely-misleading": "Likely misleading",
+  "likely-credible": "Likely credible",
+  unverified: "Unverified",
+} as Record<string, string>;
+
+function FinalInference({ report, opinion, busy, error, onRetry }: {
+  report: VerificationReport | null;
+  opinion: GeminiOpinion | undefined;
+  busy: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const algo = report?.decision.verdict;
+  const agree = algo && opinion
+    ? (algo === "likely-misleading" && opinion.verdict === "likely-false") ||
+      (algo === "likely-credible" && opinion.verdict === "likely-true") ||
+      (algo === "unverified" && opinion.verdict === "uncertain")
+    : null;
+  return (
+    <div className="surface p-6">
+      <h2 className="eyebrow">Final inference — side by side</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <section className="rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold">AI algorithms (rules + A* planned evidence)</h3>
+          {algo ? (
+            <>
+              <p className="mt-2 text-2xl font-bold">{ALGO_TEXT[algo] ?? algo}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{report.decision.headline}</p>
+            </>
+          ) : (
+            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" /> Running checks…</p>
+          )}
+        </section>
+        <section className="rounded-lg border border-border p-4">
+          <h3 className="text-sm font-semibold">Gemini opinion (model knowledge)</h3>
+          {opinion ? (
+            <>
+              <p className="mt-2 text-2xl font-bold">{OPINION_TEXT[opinion.verdict]} <span className="text-base font-medium text-muted-foreground">· {opinion.confidence}/100</span></p>
+              <p className="mt-1 text-sm">{opinion.reasoning}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{opinion.model}. Not checked against sources; it does not change the final verdict.</p>
+            </>
+          ) : busy ? (
+            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" /> Asking Gemini…</p>
+          ) : (
+            <div className="mt-2 text-sm">
+              <p role="alert" className="text-destructive">{error ?? "No Gemini opinion yet."}</p>
+              <Button variant="outline" size="sm" className="mt-2" onClick={onRetry}>Ask Gemini again</Button>
+            </div>
+          )}
+        </section>
+      </div>
+      {agree !== null && (
+        <p className="mt-4 text-sm font-medium">
+          {agree ? "✓ Both agree." : "≠ They disagree — trust the evidence-based result and check the sources below."}
+        </p>
+      )}
     </div>
   );
 }
