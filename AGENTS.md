@@ -13,3 +13,5 @@
 - Final verdicts come only from `decide()` in `src/lib/evidence/decide.ts` (unit-tested); wording signals and Gemini can never produce "likely-credible" on their own — why: agreement between unverified opinions is not verification.
 - Public API routes use `src/lib/api-guard.server.ts` for zod-validated bodies, size limits, per-IP rate limits and JSON errors, and never log claim text — why: the endpoints are unauthenticated.
 - The AI Search lab and /api/public/verify share the planner in `src/lib/planner/` (check sets as bitmasks, fractional-knapsack heuristic proven admissible/consistent by tests) — why: the plan shown in the lab is the plan actually executed.
+- AI model id and gateway URL live in `src/lib/evidence/gateway.server.ts` with optional AI_MODEL / AI_GATEWAY_URL env overrides — why: one place to change or verify the model.
+- Offline evaluation lives in `eval/claims.jsonl` + `scripts/evaluate.ts` (rule engine only) — why: numbers must be reproducible without network or keys.
