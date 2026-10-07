@@ -72,37 +72,21 @@ function ResultPage() {
     }
   }, []);
 
-  const check = useCallback(async (r: VerificationRecord) => {
-    setError(null);
-    setBusy(true);
-    try {
-      const evidence = await runVerification(r.text);
-      const updated = updateRecord(r.id, { evidence, verdict: evidence.decision.verdict });
-      setRecord((prev) => ({ ...(updated ?? { ...r, evidence, verdict: evidence.decision.verdict }), ...(prev?.geminiOpinion ? { geminiOpinion: prev.geminiOpinion } : {}) }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Verification failed — please try again.");
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
   useEffect(() => {
     const found = getRecord(submissionId) ?? null;
     setRecord(found);
-    if (found && !found.evidence) void check(found);
     if (found && !found.geminiOpinion) void askGemini(found);
-  }, [submissionId, check, askGemini]);
+  }, [submissionId, askGemini]);
 
   const result = record?.result;
-  const report = record?.evidence;
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-10">
         <PageHeader
           eyebrow="Verification report"
-          title="Is this claim verified?"
-          description="The verdict comes from published fact-checks and reputable news coverage. Wording signals and the AI read can't make a claim credible on their own."
+          title="How does this claim read?"
+          description="The AI algorithms score the wording and tone of the claim. Gemini gives a separate opinion from what it knows. Neither is a fact-check — confirm with the official desks below."
         />
 
         {record === undefined && <p className="mt-8 text-sm text-muted-foreground">Loading report…</p>}
@@ -121,76 +105,8 @@ function ResultPage() {
 
         {record && result && (
           <div className="mt-8 space-y-6">
-            {/* 1. Final verdict */}
-            <div className="surface p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <h2 className="eyebrow">Final verdict</h2>
-                <Button variant="outline" size="sm" onClick={() => void check(record)} disabled={busy}>
-                  {busy ? (
-                    <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <RefreshCw className="mr-2 size-4" aria-hidden="true" />
-                  )}
-                  {busy ? "Checking sources…" : "Check again"}
-                </Button>
-              </div>
-              {busy && <CheckProgress />}
-              {error && (
-                <div role="alert" className="mt-4 flex items-start gap-3 rounded-lg border border-destructive/40 bg-fake-soft p-4 text-sm font-medium text-destructive">
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                  <span>{error}</span>
-                </div>
-              )}
-              {report && (
-                <div className="mt-3 space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <LabelBadge label={report.decision.verdict} size="lg" />
-                    <span className="text-sm text-muted-foreground">{CONF_TEXT[report.decision.confidence]}</span>
-                  </div>
-                  <p className="text-lg font-semibold leading-snug">{report.decision.headline}</p>
-                  {report.decision.reasons.length > 0 && (
-                    <ul className="list-disc space-y-1 pl-5 text-sm">
-                      {report.decision.reasons.map((r) => <li key={r}>{r}</li>)}
-                    </ul>
-                  )}
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">What to check next</p>
-                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                      {report.decision.nextSteps.map((s) => <li key={s}>{s}</li>)}
-                    </ul>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Checked {new Date(report.checkedAt).toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Final inference: both sides */}
-            <FinalInference report={report ?? null} opinion={record.geminiOpinion} busy={opinionBusy} error={opinionError} onRetry={() => void askGemini(record)} />
-
-            {report?.plan && (
-              <div className="surface p-4 text-sm">
-                <p className="font-semibold">
-                  Plan used: {report.plan.executed.length} of {report.plan.checksTotal} checks, cost {report.plan.totalCost} vs{" "}
-                  {report.plan.costIfAll} for running everything.
-                </p>
-                <p className="mt-1 text-muted-foreground">
-                  Chosen by the A* planner to reach enough evidence at the lowest cost.
-                </p>
-                <ul className="mt-3 flex flex-wrap gap-2" aria-label="Checks in the plan">
-                  {report.plan.plan.map((c) => (
-                    <li key={c.id} className="flex items-center gap-1.5">
-                      <span>{c.label}</span>
-                      <StatusChip status={c.status === "run" ? "ok" : "skipped"} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* 2. Evidence */}
-            {report && <EvidenceList report={report} />}
+            {/* Final inference: algorithms vs Gemini */}
+            <FinalInference engineVerdict={result.verdict} riskScore={result.riskScore} languageRisk={result.languageRisk} opinion={record.geminiOpinion} busy={opinionBusy} error={opinionError} onRetry={() => void askGemini(record)} />
 
             {/* 3. Language risk */}
             <div className="flex flex-wrap items-center gap-3">
@@ -398,14 +314,16 @@ const ALGO_TEXT = {
   unverified: "Unverified",
 } as Record<string, string>;
 
-function FinalInference({ report, opinion, busy, error, onRetry }: {
-  report: VerificationReport | null;
+function FinalInference({ engineVerdict, riskScore, languageRisk, opinion, busy, error, onRetry }: {
+  engineVerdict: string;
+  riskScore: number;
+  languageRisk: LanguageRisk;
   opinion: GeminiOpinion | undefined;
   busy: boolean;
   error: string | null;
   onRetry: () => void;
 }) {
-  const algo = report?.decision.verdict;
+  const algo = engineVerdict;
   const agree = algo && opinion
     ? (algo === "likely-misleading" && opinion.verdict === "likely-false") ||
       (algo === "likely-credible" && opinion.verdict === "likely-true") ||
@@ -416,11 +334,13 @@ function FinalInference({ report, opinion, busy, error, onRetry }: {
       <h2 className="eyebrow">Final inference — side by side</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <section className="rounded-lg border border-border p-4">
-          <h3 className="text-sm font-semibold">AI algorithms (rules + A* planned evidence)</h3>
+          <h3 className="text-sm font-semibold">AI algorithms (wording &amp; tone)</h3>
           {algo ? (
             <>
               <p className="mt-2 text-2xl font-bold">{ALGO_TEXT[algo] ?? algo}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{report.decision.headline}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Language risk: {languageRisk} · score {riskScore}/100. Based on sensational words, urgency, forwarding pressure, clickbait and writing style.
+              </p>
             </>
           ) : (
             <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" /> Running checks…</p>
@@ -432,7 +352,7 @@ function FinalInference({ report, opinion, busy, error, onRetry }: {
             <>
               <p className="mt-2 text-2xl font-bold">{OPINION_TEXT[opinion.verdict]} <span className="text-base font-medium text-muted-foreground">· {opinion.confidence}/100</span></p>
               <p className="mt-1 text-sm">{opinion.reasoning}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{opinion.model}. Not checked against sources; it does not change the final verdict.</p>
+              <p className="mt-2 text-xs text-muted-foreground">{opinion.model}. Not checked against sources; separate from the algorithm score.</p>
             </>
           ) : busy ? (
             <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" /> Asking Gemini…</p>
@@ -446,7 +366,7 @@ function FinalInference({ report, opinion, busy, error, onRetry }: {
       </div>
       {agree !== null && (
         <p className="mt-4 text-sm font-medium">
-          {agree ? "✓ Both agree." : "≠ They disagree — trust the evidence-based result and check the sources below."}
+          {agree ? "✓ Both agree." : "≠ They disagree — check the official desks below before sharing."}
         </p>
       )}
     </div>
