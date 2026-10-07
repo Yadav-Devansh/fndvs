@@ -67,3 +67,15 @@ export async function shrinkDataUrl(dataUrl: string, maxSide = 900): Promise<str
     return dataUrl;
   }
 }
+
+export interface GeminiOpinion {
+  verdict: "likely-false" | "likely-true" | "uncertain";
+  confidence: number;
+  reasoning: string;
+  model: string;
+}
+
+/** Gemini's independent opinion (model knowledge only, no evidence lookup). */
+export async function runGeminiOpinion(text: string): Promise<GeminiOpinion> {
+  return (await post({ action: "opinion", text })) as unknown as GeminiOpinion;
+}

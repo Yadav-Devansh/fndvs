@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { clientIp, json, jsonError, limited, rateLimit, readJson } from "@/lib/api-guard.server";
-import { callGateway, gatewayError, runGrounded } from "@/lib/evidence/gateway.server";
+import { callGateway, gatewayError, runGrounded, runOpinion } from "@/lib/evidence/gateway.server";
 import { MIN_TEXT, MAX_TEXT } from "@/lib/predict";
 
 /**
@@ -27,6 +27,8 @@ const Verify = z.object({
     )
     .max(30),
 });
+
+const Opinion = z.object({ action: z.literal("opinion"), text: z.string().trim().min(MIN_TEXT).max(MAX_TEXT) });
 
 export const Route = createFileRoute("/api/public/ai-verify")({
   server: {
@@ -59,7 +61,16 @@ export const Route = createFileRoute("/api/public/ai-verify")({
           return json(await runGrounded(p.data.text, p.data.evidence));
         }
 
-        return jsonError(400, '`action` must be "extract" or "verify".');
+        if (action === "opinion") {
+          const rl = rateLimit(`opinion:${ip}`, 10);
+          if (!rl.ok) return limited(rl.retryAfter);
+          const p = Opinion.safeParse(read.body);
+          if (!p.success) return jsonError(400, "Invalid opinion request.");
+          const r = await runOpinion(p.data.text);
+          return r.ok ? json(r.opinion) : gatewayError(r.status);
+        }
+
+        return jsonError(400, '`action` must be "extract", "verify" or "opinion".');
       },
     },
   },
