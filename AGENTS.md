@@ -9,4 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- DWM historical analysis: shared `src/lib/dwm/pipeline.ts` is used by both the browser worker (`dwm.worker.ts`) and `scripts/build-dwm-aggregates.ts`; the app ships only aggregates (`public/data/dwm-aggregates.json`, cube of sums + 10k sample), never raw data — why: bounded memory, exact roll-ups, identical results on both paths.
+- Rule-engine scoring is pinned by a vitest snapshot in `src/lib/__tests__/predict.test.ts` — why: engine changes must be deliberate and reviewable.

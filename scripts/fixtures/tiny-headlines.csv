@@ -1,9 +1,0 @@
-publish_date,headline_category,headline_text
-20190105,city.mumbai,"TEST ROW: Shocking secret cure doctors hate, share before deleted"
-20190105,city.mumbai,"TEST ROW: Shocking secret cure doctors hate, share before deleted"
-20190210,india,"TEST ROW: Ministry announced new policy according to officials"
-20190311,sports.cricket,"TEST ROW: India beat Australia by five wickets in Chennai"
-bad-date,india,"TEST ROW: this row has an unparseable date value"
-20150101,india,"TEST ROW: this row is outside the window for sure"
-20200630,business.india-business,"TEST ROW: RBI keeps repo rate unchanged at 4 percent"
-20200630,india,"ok"

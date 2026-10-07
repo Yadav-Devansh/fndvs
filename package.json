@@ -10,8 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "vitest run",
-    "dwm:build": "bun run ./scripts/build-dwm-aggregates.ts --input ./data/india-news-headlines.csv --out ./public/data/dwm-aggregates.json --years 5 --sample 10000"
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

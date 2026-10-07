@@ -34,7 +34,7 @@ describe("predict() snapshot", () => {
         label: r.label,
         confidence: r.confidenceScore,
         aspects: r.aspects.map((a) => [a.id, a.score]),
-        topics: r.topics.map((t) => t.id),
+        topics: r.topics,
       };
     });
     expect(out).toMatchSnapshot();
