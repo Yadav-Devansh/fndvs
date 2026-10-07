@@ -42,6 +42,7 @@ export interface PlanResult {
   cost: number;
   evidence: number;
   goalReached: boolean;
+  goalNode: number | null;
   expanded: number;
   generated: number;
   runtimeMs: number;
@@ -117,6 +118,7 @@ function finish(p: Problem, algorithm: AlgorithmId, tree: TreeNode[], steps: Sea
     cost: r2(plan.reduce((s, i) => s + p.checks[i]!.cost, 0)),
     evidence: r2(evidence(p, mask)),
     goalReached: goal !== null,
+    goalNode: goal,
     expanded: tree.filter((n) => n.status === "expanded").length,
     generated: tree.length,
     runtimeMs: Math.round((performance.now() - t0) * 1000) / 1000,

@@ -36,9 +36,8 @@ export function SearchTree({
   onSelect: (id: number) => void;
 }) {
   const onPath = useMemo(() => {
-    const goal = result.goalReached ? result.tree.find((n) => n.status === "expanded" && n.depth === result.plan.length && result.plan.every((c) => n.mask & (1 << c))) : undefined;
     const s = new Set<number>();
-    for (let id: number | null = goal?.id ?? null; id !== null; id = result.tree[id]!.parent) s.add(id);
+    for (let id: number | null = result.goalNode; id !== null; id = result.tree[id]!.parent) s.add(id);
     return s;
   }, [result]);
 
