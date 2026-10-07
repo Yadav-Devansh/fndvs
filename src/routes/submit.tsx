@@ -15,6 +15,8 @@ export const Route = createFileRoute("/submit")({
   component: SubmitPage,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Verify a claim — FNDVS" },
       {
         name: "description",

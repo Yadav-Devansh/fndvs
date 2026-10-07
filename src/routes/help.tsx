@@ -7,6 +7,8 @@ export const Route = createFileRoute("/help")({
   component: HelpPage,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Help & methodology — FNDVS" },
       {
         name: "description",

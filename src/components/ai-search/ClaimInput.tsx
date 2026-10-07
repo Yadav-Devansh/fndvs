@@ -28,9 +28,9 @@ export function ClaimInput({
   records: VerificationRecord[];
 }) {
   return (
-    <div className="surface space-y-3 p-6">
-      <Label htmlFor="claim">Claim to plan checks for</Label>
-      <Textarea id="claim" rows={4} value={text} onChange={(e) => onChange(e.target.value.slice(0, 5000))} />
+    <div className="space-y-3 border-b border-border pb-5">
+      <Label htmlFor="claim" className="text-xs text-muted-foreground">Claim to plan checks for</Label>
+      <Textarea id="claim" rows={2} className="min-h-20 resize-y bg-card" value={text} onChange={(e) => onChange(e.target.value.slice(0, 5000))} />
       <div className="flex flex-wrap gap-2">
         {SAMPLE_CLAIMS.map((s) => (
           <Button key={s.label} type="button" size="sm" variant="outline" onClick={() => onChange(s.text)}>
