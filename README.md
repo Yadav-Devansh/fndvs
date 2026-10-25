@@ -1,7 +1,7 @@
 # FNDVS — Fake News Detection & Verification System (India)
 
-A web app that checks a news claim (typed or from a screenshot) against published fact-checks,
-reputable news coverage and official Indian sources, and explains its verdict. It also contains an
+A web app that scores a news claim (typed or from a screenshot) by its wording and tone, shows an
+independent Gemini opinion beside it, and links official Indian sources. New here? Read docs/CODE_TOUR.md. It also contains an
 AI Search lab that shows how an A* planner chooses which checks to run.
 
 Verdicts: `likely-misleading`, `likely-credible`, or `unverified`. Wording signals and Gemini can
