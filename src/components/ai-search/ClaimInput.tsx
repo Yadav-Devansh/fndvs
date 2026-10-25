@@ -1,3 +1,6 @@
+/**
+ * Claim box for the AI Search lab: free text, sample claims, or pick a saved record.
+ */
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";

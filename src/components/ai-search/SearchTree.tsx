@@ -1,3 +1,6 @@
+/**
+ * Search Tree tab: draws the highlighted goal path with up to two real alternative children per node. Click a node to inspect it; "Full exploration" switches to FullSearchTree.
+ */
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FullSearchTree } from "./FullSearchTree";

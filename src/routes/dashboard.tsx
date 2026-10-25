@@ -1,3 +1,6 @@
+/**
+ * Dashboard: charts (Recharts) summarising saved records - verdict counts, risk, topics.
+ */
 import { useMemo, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";

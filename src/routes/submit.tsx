@@ -1,3 +1,6 @@
+/**
+ * Verify page ("/submit"). Flow: user types a claim OR uploads a screenshot -> image is downscaled in the browser -> /api/public/ai-verify (action "extract") returns the text -> /api/public/predict scores the wording -> record saved to localStorage -> navigate to the result page.
+ */
 import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, AlertTriangle, ShieldCheck, ImagePlus, ScanText, X } from "lucide-react";

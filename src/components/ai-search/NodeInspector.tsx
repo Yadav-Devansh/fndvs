@@ -1,3 +1,6 @@
+/**
+ * Details for a clicked node: which checks are in the set, g, h, f=g+h, evidence so far, goal or not.
+ */
 import { evidence, isGoal, setLabel, type PlanResult, type Problem } from "@/lib/planner";
 
 export function NodeInspector({ problem, result, id }: { problem: Problem; result: PlanResult; id: number | null }) {

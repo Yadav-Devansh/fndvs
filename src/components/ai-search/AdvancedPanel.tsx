@@ -1,3 +1,6 @@
+/**
+ * Advanced controls: per-check cost overrides and the tau slider (goal threshold). Changing them re-runs the search.
+ */
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
