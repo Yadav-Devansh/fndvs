@@ -65,7 +65,7 @@ export interface PlanResult {
   note: string;
 }
 
-/** The FRONTIER for UCS/A*/Greedy. Binary min-heap with deterministic tie-breaking by insertion order. */
+/** The FRONTIER for UCS, A* and Greedy. Binary min-heap with deterministic tie-breaking by insertion order. */
 class Heap<T> {
   private a: { k: number; s: number; v: T }[] = [];
   private seq = 0;
