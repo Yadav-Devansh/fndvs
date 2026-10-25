@@ -1,4 +1,18 @@
-/** BFS, Uniform-Cost, A*, Greedy best-first and Hill Climbing over check sets. */
+/**
+ * SEARCH ALGORITHMS over the planning problem in ./problem.ts.
+ *
+ * State  = a bitmask of chosen checks (bit i set => check i is in the plan).
+ * Action = add one more check.  Step cost = that check's cost.
+ * Goal   = gathered evidence E(S) >= threshold T  (see isGoal in problem.ts).
+ *
+ *   BFS     : expands by depth  -> fewest checks, ignores cost.
+ *   UCS     : priority = g      -> cheapest plan, no heuristic (blind).
+ *   A*      : priority = g + h  -> cheapest plan, fewer expansions (h is admissible).
+ *   Greedy  : priority = h      -> fast, but NOT guaranteed cheapest.
+ *   Hill    : always take best gain/cost neighbour, no backtracking -> can get stuck.
+ *
+ * Every algorithm records a `tree` (all generated nodes) so the UI can draw it.
+ */
 import { heuristic, isGoal, evidence, type Problem } from "./problem";
 
 export type AlgorithmId = "bfs" | "ucs" | "astar" | "greedy" | "hill";
@@ -51,7 +65,7 @@ export interface PlanResult {
   note: string;
 }
 
-/** Binary min-heap with deterministic tie-breaking by insertion order. */
+/** The FRONTIER for UCS/A*/Greedy. Binary min-heap with deterministic tie-breaking by insertion order. */
 class Heap<T> {
   private a: { k: number; s: number; v: T }[] = [];
   private seq = 0;
@@ -139,6 +153,7 @@ function bestFirst(p: Problem, algorithm: "ucs" | "astar" | "greedy", priority: 
   const heap = new Heap<number>();
   heap.push(priority(0, tree[0]!.h), 0);
 
+  // Main loop: always expand the frontier node with the LOWEST priority.
   while (heap.size) {
     const id = heap.pop()!;
     const node = tree[id]!;
@@ -151,12 +166,14 @@ function bestFirst(p: Problem, algorithm: "ucs" | "astar" | "greedy", priority: 
       node.status = "pruned";
       continue;
     }
+    // Expand: mark explored, then test goal (goal test on expansion => optimal for UCS/A*).
     node.status = "expanded";
     closed.add(node.mask);
     steps.push({ index: steps.length, node: id, mask: node.mask, g: r2(node.g), h: r2(node.h), note: `Expand ${node.depth} check(s), g=${r2(node.g)}, h=${r2(node.h)}` });
     if (isGoal(p, node.mask)) return finish(p, algorithm, tree, steps, id, t0, "Goal reached: enough evidence gathered.");
     if (steps.length >= maxExpansions) return finish(p, algorithm, tree, steps, null, t0, `Stopped at the ${maxExpansions}-expansion limit.`);
 
+    // Generate children: one per check not yet in the set. g grows by the check cost.
     for (let c = 0; c < n; c++) {
       if (node.mask & (1 << c)) continue;
       const mask = node.mask | (1 << c);
@@ -178,6 +195,7 @@ function bestFirst(p: Problem, algorithm: "ucs" | "astar" | "greedy", priority: 
   return finish(p, algorithm, tree, steps, null, t0, "Frontier exhausted without reaching the goal.");
 }
 
+// The three best-first variants differ ONLY in the priority function f.
 export const ucs = (p: Problem, max = 5000) => bestFirst(p, "ucs", (g) => g, max);
 export const astar = (p: Problem, max = 5000) => bestFirst(p, "astar", (g, h) => g + h, max);
 export const greedy = (p: Problem, max = 5000) => bestFirst(p, "greedy", (_g, h) => h, max);
@@ -188,7 +206,7 @@ export function bfs(p: Problem, max = 5000): PlanResult {
   const tree: TreeNode[] = [{ id: 0, parent: null, mask: 0, check: null, g: 0, h: heuristic(p, 0), depth: 0, status: "frontier" }];
   const steps: SearchStep[] = [];
   const seen = new Set<number>([0]);
-  const queue = [0];
+  const queue = [0]; // FIFO queue => level-by-level expansion
   for (let qi = 0; qi < queue.length; qi++) {
     const id = queue[qi]!;
     const node = tree[id]!;
@@ -232,7 +250,7 @@ export function hillClimb(p: Problem): PlanResult {
       const ch = p.checks[c]!;
       const mask = node.mask | (1 << c);
       tree.push({ id: tree.length, parent: cur, mask, check: c, g: node.g + ch.cost, h: heuristic(p, mask), depth: node.depth + 1, status: "pruned" });
-      const score = ch.gain / ch.cost;
+      const score = ch.gain / ch.cost; // local "goodness" of this move
       if (score > bestScore + 1e-12) {
         bestScore = score;
         best = tree.length - 1;
@@ -248,6 +266,7 @@ export function hillClimb(p: Problem): PlanResult {
   }
 }
 
+/** Dispatcher used by the AI Search page and the verify endpoint. */
 export function run(id: AlgorithmId, p: Problem): PlanResult {
   switch (id) {
     case "bfs":

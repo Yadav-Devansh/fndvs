@@ -1,3 +1,6 @@
+/**
+ * Sources page: the registry of official Indian sources from lib/sources.ts.
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";

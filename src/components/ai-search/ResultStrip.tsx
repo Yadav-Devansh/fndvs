@@ -1,3 +1,6 @@
+/**
+ * Compact BFS vs UCS vs A* comparison (cost, expansions, checks) plus a one-line summary built from real numbers.
+ */
 import type { PlanResult } from "@/lib/planner";
 
 /** One sentence computed from the real numbers. */

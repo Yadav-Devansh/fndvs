@@ -1,3 +1,6 @@
+/**
+ * Result page ("/result/:id"). Loads the saved record, shows the rule-engine (wording/tone) verdict, asks Gemini for an independent opinion (action "opinion"), and shows both side by side. Gemini never changes the rule-engine verdict.
+ */
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, Ban, CheckCircle2, CircleSlash, ExternalLink, Loader2, RefreshCw, XCircle } from "lucide-react";

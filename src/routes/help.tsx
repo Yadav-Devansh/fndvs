@@ -1,3 +1,6 @@
+/**
+ * Help page: how to use the app and the presentation script.
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";

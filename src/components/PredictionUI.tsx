@@ -1,3 +1,6 @@
+/**
+ * Small shared UI pieces for verdicts: label badges, risk meter, signal lists, source cards, disclaimer.
+ */
 import { AlertTriangle, CheckCircle2, XCircle, ExternalLink, MinusCircle, HelpCircle } from "lucide-react";
 import { DISCLAIMER, type Aspect, type EvidenceStrength, type LanguageRisk } from "@/lib/predict";
 import { MAX_SOURCES_SHOWN, type SourceMatch } from "@/lib/sources";

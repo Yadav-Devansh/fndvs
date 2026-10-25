@@ -1,3 +1,6 @@
+/**
+ * History page: lists past verification records from localStorage (lib/store.ts).
+ */
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell, PageHeader } from "@/components/AppShell";

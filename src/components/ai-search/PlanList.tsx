@@ -1,3 +1,6 @@
+/**
+ * Execution Plan tab: the checks the chosen algorithm picked, in run order, with cost and gain.
+ */
 import { orderPlan, type PlanResult, type Problem } from "@/lib/planner";
 
 export function PlanList({ problem, result }: { problem: Problem; result: PlanResult }) {

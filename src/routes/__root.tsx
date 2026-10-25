@@ -1,3 +1,6 @@
+/**
+ * Root layout: wraps every page (HTML head, theme pre-paint script, React Query provider, toaster). Pages render inside <Outlet />.
+ */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,

@@ -1,3 +1,6 @@
+/**
+ * Home page ("/"): short project intro with links to Verify and AI Search.
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,6 @@
+/**
+ * Full exploration view: every generated node (capped) coloured by status expanded/frontier/pruned.
+ */
 import { useMemo } from "react";
 import { setLabel, type PlanResult, type Problem, type TreeNode } from "@/lib/planner";
 

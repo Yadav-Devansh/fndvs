@@ -1,3 +1,6 @@
+/**
+ * Inference tab: explains what the tree means - node/edge meaning, g/h/f with worked values from the current path, cost table and what changes cost, and how each algorithm behaved. Presentation only; never changes results.
+ */
 import { useMemo } from "react";
 import { evidence, heuristic, type PlanResult, type Problem } from "@/lib/planner";
 

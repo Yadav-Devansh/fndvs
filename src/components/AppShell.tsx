@@ -1,3 +1,6 @@
+/**
+ * App frame used by every page: top navigation, mobile menu, footer disclaimer, PageHeader helper.
+ */
 import { type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { DISCLAIMER } from "@/lib/predict";
