@@ -1,5 +1,5 @@
 /**
- * AI Search lab ("/ai-search"). Turns a claim into a planning problem (lib/planner/problem.ts), runs BFS/UCS/A*/Greedy/Hill Climbing, and shows three tabs: Execution Plan, Search Tree, Inference. Re-runs whenever the claim, costs or tau change.
+ * AI Search lab ("/ai-search"). Turns a claim into a planning problem (lib/planner/problem.ts), runs BFS, UCS, A*, Greedy and Hill Climbing, and shows three tabs: Execution Plan, Search Tree, Inference. Re-runs whenever the claim, costs or tau change.
  */
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
